@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.arang'
+version = '0.0.1-SNAPSHOT'
+description = 'Arang Producer Intake (P1) — skeleton spike'
+
+java {
+    toolchain {
+        // Modern stack per project steering: Java 25 (LTS). Toolchain pins the compile/run JDK.
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Web + JPA + validation (P1 intake, review/edit endpoints, incoming-data validation)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // Actuator for the health check (SDD T1)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // Flyway migrations (Boot 4 split Flyway autoconfig into its own starter; flyway-core alone
+    // does NOT trigger autoconfiguration). The starter brings autoconfig + flyway-core.
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-mysql'
+
+    // MySQL driver for the prod/dev profile
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    // H2 for tests so the skeleton boots without a live MySQL
+    testRuntimeOnly 'com.h2database:h2'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

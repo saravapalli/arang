@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Arang — Interactive consumer flow (multi-step)</title>
+<style>
+  :root{
+    --ink:#141726;--muted:#6b7280;--line:#e9e9f1;--brand:#5b3df5;--brand2:#ff4d6d;--accent:#13c2a3;
+    --grad:linear-gradient(135deg,#5b3df5,#8b5cf6 45%,#ff4d6d);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.55 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#fbfbfe}
+  .note{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:10px;padding:9px 14px;margin:12px auto;max-width:960px;font-size:12.5px}
+  .brand{font-weight:800;font-size:20px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* stepper */
+  .stepper{max-width:960px;margin:14px auto 0;display:flex;align-items:center;gap:8px;padding:0 20px;color:var(--muted);font-size:12.5px;font-weight:600}
+  .stepper .s{display:flex;align-items:center;gap:7px;opacity:.5}
+  .stepper .s.active{opacity:1;color:var(--brand)}
+  .stepper .dot{width:22px;height:22px;border-radius:999px;background:#eceafe;color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:12px}
+  .stepper .s.active .dot{background:var(--brand);color:#fff}
+  .stepper .bar{flex:1;height:2px;background:var(--line);min-width:18px}
+
+  .screen{display:none;max-width:960px;margin:0 auto;padding:28px 20px 60px}
+  .screen.show{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* step 1 location */
+  .hero{text-align:center;padding:40px 0 24px}
+  .hero .brand{font-size:30px;margin-bottom:18px}
+  .hero h1{font-size:34px;letter-spacing:-.6px;margin:0 0 10px}
+  .hero p{color:var(--muted);margin:0 auto 26px;max-width:420px}
+  .locbox{max-width:520px;margin:0 auto;display:flex;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 14px 40px rgba(20,10,60,.1)}
+  .locbox input{flex:1;border:0;outline:0;font-size:16px;padding:12px 14px;background:transparent}
+  .suggest{max-width:520px;margin:14px auto 0;text-align:left;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .suggest small{color:var(--muted);width:100%;text-align:center;margin-bottom:4px}
+  .ghostchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer}
+  .ghostchip:hover{border-color:var(--brand);color:var(--brand)}
+
+  .btn{border:0;border-radius:12px;padding:14px 24px;font-weight:700;font-size:15px;cursor:pointer}
+  .btn.p{background:var(--brand);color:#fff;box-shadow:0 10px 24px rgba(91,61,245,.3)}
+  .btn.p:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  .btn.g{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .center{text-align:center;margin-top:26px}
+
+  /* step 2 type picker */
+  h2.q{font-size:26px;letter-spacing:-.5px;text-align:center;margin:6px 0 4px}
+  .sub{color:var(--muted);text-align:center;margin:0 0 26px}
+  .typegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:720px;margin:0 auto}
+  @media(max-width:680px){.typegrid{grid-template-columns:repeat(2,1fr)}}
+  .type{border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:22px 10px;text-align:center;cursor:pointer;transition:.12s}
+  .type:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,10,60,.08)}
+  .type.sel{border-color:var(--brand);background:#f3f0ff;box-shadow:0 0 0 3px rgba(91,61,245,.15)}
+  .type .e{font-size:30px}.type .n{font-weight:600;margin-top:8px}
+  .allrow{text-align:center;margin:22px 0}
+  .allbtn{display:inline-block;border:1.5px dashed var(--brand);color:var(--brand);background:#fff;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer}
+
+  /* step 3 results */
+  .rhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .rhead h2{font-size:22px;margin:0;letter-spacing:-.4px}
+  .rhead .loc{background:#f3f0ff;color:var(--brand);font-weight:700;border-radius:999px;padding:4px 12px;font-size:13px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 20px;position:sticky;top:0;background:#fbfbfe;padding:10px 0;z-index:3}
+  .fbtn{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;gap:6px;align-items:center}
+  .fbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .count{color:var(--muted);font-size:13px;margin-left:auto;align-self:center}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:540px){.grid{grid-template-columns:1fr}}
+  .card{border-radius:16px;overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:0 6px 18px rgba(20,10,60,.06)}
+  .card .ph{height:120px;background:var(--grad);position:relative;opacity:.9}
+  .card .ph .date{position:absolute;top:10px;left:10px;background:#fff;border-radius:10px;text-align:center;padding:5px 9px;line-height:1}
+  .card .ph .date .d{font-size:16px;font-weight:800;color:var(--brand)}.card .ph .date .m{font-size:9px;color:var(--muted);text-transform:uppercase}
+  .card .ph .km{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:3px 9px;border-radius:999px}
+  .card .bd{padding:13px 15px 16px}.card .bd h4{margin:0 0 7px;font-size:16px}
+  .card .bd .mt{color:var(--muted);font-size:13px;margin:3px 0}
+  .card .bd .foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+  .card .bd .tagc{font-size:11px;background:#f3f0ff;color:var(--brand);padding:3px 10px;border-radius:999px;font-weight:600}
+  .back{color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:10px;display:inline-block}
+  .empty{text-align:center;color:var(--muted);padding:50px 0}
+</style>
+</head>
+<body>
+
+<div class="note">⚠️ Exploratory interactive mockup — a <b>guided multi-step consumer flow</b> (P2+). Click through: enter a location → pick a type (or “all”) → results with live type-filter buttons scoped to that location. Fully clickable; no backend.</div>
+
+<div class="stepper">
+  <div class="s active" id="st1"><span class="dot">1</span> Location</div><span class="bar"></span>
+  <div class="s" id="st2"><span class="dot">2</span> Event type</div><span class="bar"></span>
+  <div class="s" id="st3"><span class="dot">3</span> Results</div>
+</div>
+
+<!-- STEP 1 -->
+<section class="screen show" id="screen1">
+  <div class="hero">
+    <div class="brand">◆ arang</div>
+    <h1>Where do you want to find events?</h1>
+    <p>Tell us a town or neighborhood and we’ll show you what’s happening nearby.</p>
+    <div class="locbox">
+      <input id="locInput" placeholder="e.g. Ashland" oninput="onLoc()" onkeydown="if(event.key==='Enter'&&locVal())goType()"/>
+      <button class="btn p" id="locNext" disabled onclick="goType()">Continue →</button>
+    </div>
+    <div class="suggest"><small>Popular nearby</small>
+      <span class="ghostchip" onclick="pick('Ashland')">Ashland</span>
+      <span class="ghostchip" onclick="pick('Medford')">Medford</span>
+      <span class="ghostchip" onclick="pick('Talent')">Talent</span>
+      <span class="ghostchip" onclick="pick('Phoenix')">Phoenix</span>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="screen" id="screen2">
+  <span class="back" onclick="show(1)">← change location</span>
+  <h2 class="q">What kind of events in <span id="locEcho" style="color:var(--brand)">Ashland</span>?</h2>
+  <p class="sub">Pick a type to focus, or browse everything.</p>
+  <div class="typegrid" id="typeGrid"></div>
+  <div class="allrow"><span class="allbtn" onclick="chooseAll()">Show me everything →</span></div>
+  <div class="center"><button class="btn p" id="typeNext" disabled onclick="goResults()">See events →</button></div>
+</section>
+
+<!-- STEP 3 -->
+<section class="screen" id="screen3">
+  <span class="back" onclick="show(2)">← change type</span>
+  <div class="rhead"><h2>Events near</h2><span class="loc" id="locPill">Ashland</span></div>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="results"></div>
+  <div class="empty" id="emptyMsg" style="display:none">No events of that type near here yet.</div>
+</section>
+
+<script>
+  var TYPES=[{k:'music',e:'🎵',n:'Music'},{k:'food',e:'🍽️',n:'Food'},{k:'arts',e:'🎨',n:'Arts'},
+    {k:'family',e:'👨‍👩‍👧',n:'Family'},{k:'sports',e:'🏃',n:'Sports'},{k:'outdoor',e:'🥾',n:'Outdoor'},
+    {k:'workshop',e:'🛠️',n:'Workshop'},{k:'offer',e:'🏷️',n:'Deals'}];
+  var EVENTS=[
+    {t:'Blue Door Jazz Night',k:'music',day:'14',mo:'Sat',when:'8:00 PM',km:'1.2 km',tag:'Music',price:'$20'},
+    {t:'Riverside Farmers Market',k:'food',day:'14',mo:'Sat',when:'9:00 AM',km:'0.6 km',tag:'Food',price:'Free'},
+    {t:'Open-Air Art Fair',k:'arts',day:'15',mo:'Sun',when:'10:00 AM',km:'2.1 km',tag:'Arts',price:'Free'},
+    {t:'Kids Science Workshop',k:'workshop',day:'15',mo:'Sun',when:'11:00 AM',km:'1.8 km',tag:'Workshop',price:'$8'},
+    {t:'Sunrise Trail Hike',k:'outdoor',day:'15',mo:'Sun',when:'6:00 AM',km:'4.3 km',tag:'Outdoor',price:'Free'},
+    {t:'Indie Rock Showcase',k:'music',day:'14',mo:'Sat',when:'9:00 PM',km:'3.0 km',tag:'Music',price:'$15'},
+    {t:'2-for-1 Tacos Weekend',k:'offer',day:'13',mo:'Fri',when:'All weekend',km:'0.9 km',tag:'Deal',price:'Deal'},
+    {t:'Community 5K Run',k:'sports',day:'15',mo:'Sun',when:'7:30 AM',km:'2.6 km',tag:'Sports',price:'$10'},
+    {t:'Family Movie in the Park',k:'family',day:'14',mo:'Sat',when:'7:00 PM',km:'1.1 km',tag:'Family',price:'Free'},
+    {t:'Pottery Taster Class',k:'workshop',day:'14',mo:'Sat',when:'2:00 PM',km:'1.5 km',tag:'Workshop',price:'$25'}
+  ];
+  var loc='Ashland', chosenType=null;
+
+  function locVal(){return document.getElementById('locInput').value.trim();}
+  function onLoc(){document.getElementById('locNext').disabled=!locVal();}
+  function pick(v){document.getElementById('locInput').value=v;onLoc();goType();}
+  function show(n){for(var i=1;i<=3;i++){document.getElementById('screen'+i).classList.toggle('show',i===n);document.getElementById('st'+i).classList.toggle('active',i<=n);}window.scrollTo(0,0);}
+
+  function goType(){
+    loc=locVal()||'Ashland';
+    document.getElementById('locEcho').textContent=loc;
+    document.getElementById('locPill').textContent=loc;
+    renderTypes(); show(2);
+  }
+  function renderTypes(){
+    var g=document.getElementById('typeGrid');g.innerHTML='';
+    TYPES.forEach(function(t){
+      var d=document.createElement('div');d.className='type'+(chosenType===t.k?' sel':'');
+      d.innerHTML='<div class="e">'+t.e+'</div><div class="n">'+t.n+'</div>';
+      d.onclick=function(){chosenType=t.k;renderTypes();document.getElementById('typeNext').disabled=false;};
+      g.appendChild(d);
+    });
+  }
+  function chooseAll(){chosenType=null;goResults();}
+  function goResults(){renderFilters();renderResults();show(3);}
+
+  function renderFilters(){
+    var f=document.getElementById('filters');f.innerHTML='';
+    var all=document.createElement('div');all.className='fbtn'+(chosenType===null?' active':'');
+    all.textContent='All';all.onclick=function(){chosenType=null;renderFilters();renderResults();};
+    f.appendChild(all);
+    TYPES.forEach(function(t){
+      var b=document.createElement('div');b.className='fbtn'+(chosenType===t.k?' active':'');
+      b.innerHTML=t.e+' '+t.n;
+      b.onclick=function(){chosenType=t.k;renderFilters();renderResults();};
+      f.appendChild(b);
+    });
+    var c=document.createElement('div');c.className='count';c.id='cnt';f.appendChild(c);
+  }
+  function renderResults(){
+    var list=EVENTS.filter(function(e){return chosenType===null||e.k===chosenType;});
+    var r=document.getElementById('results');r.innerHTML='';
+    document.getElementById('emptyMsg').style.display=list.length?'none':'block';
+    document.getElementById('cnt').textContent=list.length+' events near '+loc;
+    list.forEach(function(e){
+      var c=document.createElement('div');c.className='card';
+      c.innerHTML='<div class="ph"><div class="date"><div class="d">'+e.day+'</div><div class="m">'+e.mo+'</div></div>'+
+        '<div class="km">📍 '+e.km+' from '+loc+'</div></div>'+
+        '<div class="bd"><h4>'+e.t+'</h4><div class="mt">🕒 '+e.when+'</div>'+
+        '<div class="foot"><span class="tagc">'+e.tag+'</span><b>'+e.price+'</b></div></div>';
+      r.appendChild(c);
+    });
+  }
+</script>
+</body>
+</html>

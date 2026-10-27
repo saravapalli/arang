@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Arang — Direction B: Weekend Planner</title>
+<style>
+  :root{--ink:#141726;--muted:#6b7280;--line:#e9e9f1;--brand:#5b3df5;--accent:#13c2a3;--amber:#f59e0b}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#f5f5fb}
+  .note{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:10px;padding:9px 14px;margin:12px auto;max-width:1000px;font-size:12.5px}
+  .top{max-width:1000px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:12px}
+  .brand{font-weight:800;font-size:20px;background:linear-gradient(135deg,#5b3df5,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .top .loc{margin-left:auto;background:#efeafe;color:var(--brand);font-weight:700;border-radius:999px;padding:6px 14px;font-size:13px}
+  .layout{max-width:1000px;margin:0 auto;padding:0 20px 50px;display:grid;grid-template-columns:300px 1fr;gap:20px}
+  @media(max-width:800px){.layout{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+  .panel h3{margin:0 0 4px;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .sugg{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;cursor:grab}
+  .sugg:hover{border-color:var(--brand);box-shadow:0 6px 16px rgba(91,61,245,.12)}
+  .sugg h4{margin:0 0 3px;font-size:14px}.sugg .mt{color:var(--muted);font-size:12px}
+  .sugg .tagc{font-size:10.5px;background:#f3f0ff;color:var(--brand);padding:2px 8px;border-radius:999px;font-weight:600}
+  .board{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:560px){.board{grid-template-columns:1fr}}
+  .day{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .day .h{padding:12px 16px;font-weight:800;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  .day .h span{color:var(--muted);font-weight:600;font-size:13px}
+  .slots{padding:10px 12px;min-height:120px}
+  .slot{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .slot .time{width:62px;color:var(--muted);font-size:12px;flex:none;padding-top:3px}
+  .slot .fill{flex:1}
+  .ev{background:linear-gradient(135deg,#eef2ff,#fdeef3);border:1px solid #e3dcff;border-radius:12px;padding:9px 12px}
+  .ev h4{margin:0 0 2px;font-size:14px}.ev .mt{color:var(--muted);font-size:12px}
+  .ev .why{font-size:11px;color:#0f766e;margin-top:4px}
+  .gap{border:1.5px dashed var(--line);border-radius:12px;padding:10px 12px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;align-items:center}
+  .gap button{border:0;background:var(--brand);color:#fff;border-radius:8px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer}
+  .foot{max-width:1000px;margin:16px auto 0;padding:0 20px}
+  .cta{background:linear-gradient(135deg,#5b3df5,#ff4d6d);color:#fff;border:0;border-radius:14px;padding:15px 24px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 12px 30px rgba(91,61,245,.3)}
+</style></head>
+<body>
+<div class="note">⚠️ Direction B — <b>Weekend Planner</b>. The unit isn't an event, it's your <i>weekend</i>: a Sat/Sun timeline with free-slot gaps Arang offers to fill. Click “Fill this” on a gap. Exploratory P2+.</div>
+<div class="top"><div class="brand">◆ arang</div><div style="color:var(--muted);font-size:13px">Build your weekend</div><div class="loc">📍 Ashland</div></div>
+<div class="layout">
+  <div class="panel">
+    <h3>Suggestions for you</h3>
+    <div style="color:var(--muted);font-size:12px;margin-bottom:4px">based on 🎵 music · 👨‍👩‍👧 family · ≤3km</div>
+    <div class="sugg"><h4>Blue Door Jazz Night</h4><div class="mt">Sat 8 PM · 1.2 km</div><span class="tagc">Music</span></div>
+    <div class="sugg"><h4>Riverside Farmers Market</h4><div class="mt">Sat 9 AM · 0.6 km</div><span class="tagc">Food · Free</span></div>
+    <div class="sugg"><h4>Family Movie in the Park</h4><div class="mt">Sat 7 PM · 1.1 km</div><span class="tagc">Family · Free</span></div>
+    <div class="sugg"><h4>Open-Air Art Fair</h4><div class="mt">Sun 10 AM · 2.1 km</div><span class="tagc">Arts · Free</span></div>
+  </div>
+  <div>
+    <div class="board">
+      <div class="day">
+        <div class="h">Saturday <span>Jun 14</span></div>
+        <div class="slots">
+          <div class="slot"><div class="time">9 AM</div><div class="fill"><div class="ev"><h4>Riverside Farmers Market</h4><div class="mt">📍 0.6 km</div><div class="why">✦ closest · free · matches your morning</div></div></div></div>
+          <div class="slot"><div class="time">2–5 PM</div><div class="fill"><div class="gap">Free afternoon <button onclick="fill(this)">Fill this ✦</button></div></div></div>
+          <div class="slot"><div class="time">8 PM</div><div class="fill"><div class="ev"><h4>Blue Door Jazz Night</h4><div class="mt">📍 1.2 km · ✓ verified</div><div class="why">✦ matches “music” · walkable from dinner</div></div></div></div>
+        </div>
+      </div>
+      <div class="day">
+        <div class="h">Sunday <span>Jun 15</span></div>
+        <div class="slots">
+          <div class="slot"><div class="time">10 AM</div><div class="fill"><div class="ev"><h4>Open-Air Art Fair</h4><div class="mt">📍 2.1 km</div><div class="why">✦ relaxed Sunday · free</div></div></div></div>
+          <div class="slot"><div class="time">1 PM</div><div class="fill"><div class="gap">Open slot <button onclick="fill(this)">Fill this ✦</button></div></div></div>
+          <div class="slot"><div class="time">eve</div><div class="fill"><div class="gap">Nothing yet <button onclick="fill(this)">Fill this ✦</button></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><button class="cta">Lock my weekend → get reminders on WhatsApp</button></div>
+  </div>
+</div>
+<script>
+var picks=[['Pottery Taster Class','Sat 2 PM · 1.5 km','hands-on · indoor'],['Community 5K Run','Sun 1 PM · 2.6 km','active · cheap'],['Sunrise Trail Hike','Sun 1 PM · 4.3 km','outdoorsy pick']];var i=0;
+function fill(btn){var p=picks[i%picks.length];i++;var box=btn.closest('.fill');box.innerHTML='<div class="ev"><h4>'+p[0]+'</h4><div class="mt">📍 '+p[1]+'</div><div class="why">✦ '+p[2]+' · fills your free slot</div></div>';}
+</script>
+</body></html>

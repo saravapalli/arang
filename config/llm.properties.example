@@ -1,0 +1,19 @@
+# LLM / Gemini extraction secrets (TEMPLATE)
+# Copy this file to  llm.properties  (same dir) and fill in real values.
+# The real file is git-ignored; never commit your key. Alternatively set GEMINI_API_KEY in the env.
+
+# Turn LLM extraction on and pick the provider: ollama (local) | gemini (trial key).
+arang.llm.enabled=true
+arang.llm.provider=gemini
+
+# Hard cap on LLM requests per local day — protects the Gemini trial quota. Resets at local midnight.
+arang.llm.daily-limit=70
+
+# --- Gemini (only needed when provider=gemini) ---
+# Get a free key at https://aistudio.google.com  →  "Get API key".
+arang.llm.gemini.api-key=YOUR_GEMINI_API_KEY
+arang.llm.gemini.model=gemini-3.5-flash
+
+# --- Ollama (only needed when provider=ollama) ---
+arang.llm.ollama.base-url=http://localhost:11434/v1
+arang.llm.ollama.model=qwen2.5-coder:7b

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Arang — Interactive Ashland Map (approximate)</title>
+<style>
+  :root{--brand:#5b3df5;--accent:#13c2a3;--pink:#ff4d6d;--amber:#f59e0b;--ink:#f0f2fb;--muted:#9aa0c4}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#0b1020;overflow-x:hidden}
+  .note{background:#161a2e;color:#c9cce0;border:1px solid #2a3050;border-radius:10px;padding:9px 14px;margin:10px auto;max-width:1080px;font-size:12.5px}
+  .top{max-width:1080px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:12px}
+  .brand{font-weight:800;font-size:20px;background:linear-gradient(135deg,#8b5cf6,#ff6b9d);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .loc{margin-left:auto;background:#1c2140;color:#b9c0e8;border-radius:999px;padding:6px 14px;font-size:13px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px 30px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
+  .fbtn{border:1px solid #2a3050;background:#141830;color:#c9cce0;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer}
+  .fbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .count{margin-left:auto;align-self:center;color:var(--muted);font-size:13px}
+  .stage{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+  @media(max-width:860px){.stage{grid-template-columns:1fr}}
+
+  /* ---- the map ---- */
+  .mapcard{border:1px solid #2a3050;border-radius:18px;overflow:hidden;position:relative}
+  .map{position:relative;height:520px;cursor:grab;
+    background:
+      radial-gradient(1200px 700px at 50% -10%,#1a2350,transparent),
+      radial-gradient(500px 500px at 50% 55%,rgba(91,61,245,.10),transparent),
+      #0c1230;}
+  /* river */
+  .river{position:absolute;left:-5%;top:40%;width:110%;height:60px;background:linear-gradient(90deg,#17407a,#1b4e8f);opacity:.5;transform:rotate(-7deg);filter:blur(1px)}
+  /* parks (green blobs) */
+  .park{position:absolute;border-radius:50%;background:radial-gradient(circle,#1f5e42,#153f2d);opacity:.55;filter:blur(2px)}
+  /* roads */
+  .road{position:absolute;background:#20264a}
+  /* town label */
+  .townlbl{position:absolute;left:50%;top:8px;transform:translateX(-50%);color:#6b73a6;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+  .zone{position:absolute;border:1px dashed #2f3663;border-radius:16px;color:#5a6199;font-size:11px;padding:4px 8px}
+  .me{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);z-index:5}
+  .me .d{width:16px;height:16px;background:#fff;border-radius:999px;box-shadow:0 0 0 6px rgba(255,255,255,.12)}
+  .me .r{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;height:150px;border:1px solid rgba(255,255,255,.12);border-radius:999px;animation:radar 3s infinite}
+  @keyframes radar{0%{width:30px;height:30px;opacity:.6}100%{width:260px;height:260px;opacity:0}}
+
+  .pin{position:absolute;transform:translate(-50%,-100%);z-index:4;cursor:pointer;transition:transform .12s}
+  .pin:hover{transform:translate(-50%,-108%) scale(1.08)}
+  .pin .mk{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(0,0,0,.4)}
+  .pin .mk span{transform:rotate(45deg);font-size:14px}
+  .pin.soon .mk{animation:bob 1.6s infinite}
+  @keyframes bob{0%,100%{margin-top:0}50%{margin-top:-5px}}
+  .pin.sel .mk{box-shadow:0 0 0 4px rgba(255,255,255,.35),0 6px 14px rgba(0,0,0,.4)}
+  .pin .tip{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);background:#0b1020;border:1px solid #343a63;color:#eef0f8;border-radius:10px;padding:7px 10px;font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:.12s}
+  .pin:hover .tip{opacity:1}
+  .pin .tip b{color:#fff}
+  .approxnote{position:absolute;left:12px;bottom:10px;background:rgba(11,16,32,.7);border:1px solid #2a3050;color:#8b91b5;font-size:11px;padding:4px 9px;border-radius:8px}
+
+  /* ---- side list ---- */
+  .list{display:flex;flex-direction:column;gap:9px;max-height:520px;overflow:auto}
+  .row{display:flex;gap:11px;background:#141830;border:1px solid #2a3050;border-radius:14px;padding:11px;cursor:pointer}
+  .row:hover,.row.sel{border-color:var(--brand);background:#191e3b}
+  .row .ic{width:40px;height:40px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-size:19px}
+  .row h4{margin:0 0 3px;font-size:14.5px}.row .mt{color:var(--muted);font-size:12px;margin:1px 0}
+  .row .v{font-size:10.5px;color:var(--accent);font-weight:700}
+
+  .sheet{position:fixed;inset:0;background:rgba(5,7,20,.55);display:none;align-items:center;justify-content:center;z-index:20}
+  .sheet.show{display:flex}
+  .sheet .card{background:#12162c;border:1px solid #343a63;border-radius:16px;width:min(500px,92vw);padding:20px}
+  .sheet .x{float:right;cursor:pointer;color:var(--muted)}.sheet h3{margin:0 0 4px}.sheet .d{color:var(--muted);margin:3px 0}
+  .sheet .why{margin-top:10px;background:rgba(19,194,163,.1);border:1px solid rgba(19,194,163,.3);color:#a7f3d0;border-radius:10px;padding:8px 12px;font-size:13px}
+  .sheet .cta{margin-top:14px;display:flex;gap:10px}
+  .btn{border:0;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer}.btn.p{background:var(--brand);color:#fff}.btn.g{background:#1c2140;color:#cdd0e6}
+</style></head>
+<body>
+<div class="note">⚠️ Interactive <b>approximate</b> map — pins are placed <i>somewhere plausible within Ashland</i> (jittered near zones/landmarks), <b>not</b> exact addresses. Hover a pin for a peek, click pin or list row for details, filter by type to narrow the map. P2+, no backend.</div>
+<div class="top"><div class="brand">◆ arang</div><div style="color:var(--muted);font-size:13px">what's on in</div><div class="loc">📍 Ashland</div></div>
+<div class="wrap">
+  <div class="filters" id="filters"></div>
+  <div class="stage">
+    <div class="mapcard"><div class="map" id="map">
+      <div class="townlbl">Ashland</div>
+      <div class="river"></div>
+      <div class="park" style="left:18%;top:22%;width:130px;height:110px"></div>
+      <div class="park" style="left:62%;top:60%;width:160px;height:130px"></div>
+      <div class="road" style="left:0;top:54%;width:100%;height:4px;transform:rotate(-2deg)"></div>
+      <div class="road" style="left:46%;top:0;width:4px;height:100%"></div>
+      <div class="road" style="left:0;top:28%;width:100%;height:3px;opacity:.6"></div>
+      <div class="zone" style="left:12%;top:14%">Lithia Park area</div>
+      <div class="zone" style="left:60%;top:76%">Railroad District</div>
+      <div class="zone" style="left:66%;top:10%">Downtown Plaza</div>
+      <div class="me"><div class="r"></div><div class="d"></div></div>
+      <div class="approxnote">◦ approximate locations within Ashland</div>
+    </div></div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<div class="sheet" id="sheet"><div class="card"><span class="x" onclick="closeSheet()">✕</span>
+  <h3 id="sT"></h3><div class="d" id="sWhen"></div><div class="d" id="sWhere"></div><div class="why" id="sWhy"></div>
+  <div class="cta"><span class="btn p">Get tickets / info</span><span class="btn g">♡ Save</span></div></div></div>
+<script>
+var TYPES=[{k:'all',e:'✦',n:'All',c:'#5b3df5'},{k:'music',e:'🎵',n:'Music',c:'#7c5cff'},{k:'food',e:'🍽️',n:'Food',c:'#13c2a3'},
+  {k:'family',e:'👨‍👩‍👧',n:'Family',c:'#f59e0b'},{k:'arts',e:'🎨',n:'Arts',c:'#ff4d6d'},{k:'outdoor',e:'🥾',n:'Outdoor',c:'#0ea5e9'},
+  {k:'sports',e:'🏃',n:'Sports',c:'#8b5cf6'},{k:'workshop',e:'🛠️',n:'Workshop',c:'#ec4899'},{k:'offer',e:'🏷️',n:'Deals',c:'#f43f5e'}];
+// x/y are APPROXIMATE positions within the Ashland frame (not real coords)
+var EVENTS=[
+  {id:1,t:'Blue Door Jazz Night',k:'music',when:'Sat 8:00 PM',where:'Railroad District (approx)',x:63,y:70,soon:1,v:1,why:'matches “music” · ✓ verified · ~1 km'},
+  {id:2,t:'Riverside Farmers Market',k:'food',when:'Sat 9:00 AM',where:'near Lithia Park (approx)',x:22,y:30,soon:1,v:1,why:'closest · free'},
+  {id:3,t:'Family Movie in the Park',k:'family',when:'Sat 7:00 PM',where:'Lithia Park (approx)',x:30,y:20,soon:1,v:0,why:'for the kids · free'},
+  {id:4,t:'Open-Air Art Fair',k:'arts',when:'Sun 10:00 AM',where:'Downtown Plaza (approx)',x:70,y:16,soon:0,v:0,why:'relaxed Sunday · free'},
+  {id:5,t:'Sunrise Trail Hike',k:'outdoor',when:'Sun 6:00 AM',where:'edge of town (approx)',x:12,y:66,soon:0,v:0,why:'outdoorsy pick'},
+  {id:6,t:'Community 5K Run',k:'sports',when:'Sun 7:30 AM',where:'Downtown (approx)',x:60,y:34,soon:0,v:0,why:'active · cheap'},
+  {id:7,t:'Kids Science Workshop',k:'family',when:'Sun 11:00 AM',where:'near Plaza (approx)',x:74,y:40,soon:0,v:1,why:'for the kids · indoor'},
+  {id:8,t:'2-for-1 Tacos Weekend',k:'offer',when:'Fri–Sun',where:'Railroad District (approx)',x:55,y:80,soon:1,v:1,why:'weekend deal · ✓'},
+  {id:9,t:'Pottery Taster Class',k:'workshop',when:'Sat 2:00 PM',where:'central (approx)',x:48,y:50,soon:0,v:0,why:'hands-on'},
+  {id:10,t:'Acoustic Brunch Set',k:'music',when:'Sun 12:30 PM',where:'near river (approx)',x:40,y:44,soon:0,v:0,why:'chill music'}
+];
+var active='all',selId=null;
+function T(k){return TYPES.find(function(x){return x.k===k})}
+function renderFilters(){var f=document.getElementById('filters');f.innerHTML='';
+  TYPES.forEach(function(t){var b=document.createElement('div');b.className='fbtn'+(active===t.k?' active':'');
+    b.innerHTML=t.e+' '+t.n;b.onclick=function(){active=t.k;selId=null;render()};f.appendChild(b);});
+  var c=document.createElement('div');c.className='count';c.id='cnt';f.appendChild(c);}
+function items(){return EVENTS.filter(function(e){return active==='all'||e.k===active})}
+function render(){
+  renderFilters();var list=items();
+  document.getElementById('cnt').textContent=list.length+' events in Ashland';
+  var map=document.getElementById('map');map.querySelectorAll('.pin').forEach(function(p){p.remove()});
+  list.forEach(function(e){var ty=T(e.k);var p=document.createElement('div');
+    p.className='pin'+(e.soon?' soon':'')+(selId===e.id?' sel':'');
+    p.style.left=e.x+'%';p.style.top=e.y+'%';
+    p.innerHTML='<div class="tip"><b>'+e.t+'</b><br>'+e.when+'</div><div class="mk" style="--c:'+ty.c+'"><span>'+ty.e+'</span></div>';
+    p.onclick=function(){open(e)};map.appendChild(p);});
+  var L=document.getElementById('list');L.innerHTML='';
+  list.forEach(function(e){var ty=T(e.k);var r=document.createElement('div');r.className='row'+(selId===e.id?' sel':'');
+    r.innerHTML='<div class="ic" style="background:'+ty.c+'22;color:'+ty.c+'">'+ty.e+'</div><div><h4>'+e.t+'</h4><div class="mt">🕒 '+e.when+'</div><div class="mt">📍 '+e.where+'</div>'+(e.v?'<span class="v">✓ verified</span>':'')+'</div>';
+    r.onmouseenter=function(){selId=e.id;highlight()};r.onclick=function(){open(e)};L.appendChild(r);});
+}
+function highlight(){document.querySelectorAll('.pin').forEach(function(p){p.classList.remove('sel')});
+  document.querySelectorAll('.row').forEach(function(r){r.classList.remove('sel')});
+  var list=items();var idx=list.findIndex(function(e){return e.id===selId});
+  if(idx>-1){var pins=document.querySelectorAll('.pin');if(pins[idx])pins[idx].classList.add('sel');
+    var rows=document.querySelectorAll('.row');if(rows[idx])rows[idx].classList.add('sel');}}
+function open(e){selId=e.id;highlight();
+  document.getElementById('sT').textContent=e.t;document.getElementById('sWhen').textContent='🕒 '+e.when;
+  document.getElementById('sWhere').textContent='📍 '+e.where;document.getElementById('sWhy').textContent='✦ '+e.why;
+  document.getElementById('sheet').classList.add('show');}
+function closeSheet(){document.getElementById('sheet').classList.remove('show')}
+render();
+</script>
+</body></html>

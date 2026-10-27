@@ -1,0 +1,54 @@
+# Arang Producer Intake (P1) — base config.
+# Schema is owned by Flyway migrations (src/main/resources/db/migration), NOT by JPA auto-ddl:
+# the schema is the deliberate, long-lived artifact (see steering/design-philosophy.md).
+spring:
+  application:
+    name: arang-intake
+  config:
+    # Optional external secrets files (git-ignored). Won't fail if absent.
+    import:
+      - "optional:file:./config/cursor-agent.properties"
+      - "optional:file:./config/llm.properties"
+  flyway:
+    enabled: true
+
+# WhatsApp integration (REQ-01 verify, REQ-08 reply). Secrets via env, never committed.
+arang:
+  whatsapp:
+    verify-token: ${ARANG_WHATSAPP_VERIFY_TOKEN:}
+    access-token: ${ARANG_WHATSAPP_ACCESS_TOKEN:}
+    phone-number-id: ${ARANG_WHATSAPP_PHONE_NUMBER_ID:}
+    public-base-url: ${ARANG_PUBLIC_BASE_URL:http://localhost:8080}
+    low-confidence-threshold: 0.5
+
+# LLM event extraction (decipher title/date/location from a message). Disabled by default.
+# provider: ollama (local, default) | gemini (trial key, rate-limited). daily-limit caps calls/day.
+  llm:
+    enabled: ${ARANG_LLM_ENABLED:false}
+    provider: ${ARANG_LLM_PROVIDER:ollama}
+    timeout-seconds: ${ARANG_LLM_TIMEOUT:120}
+    daily-limit: ${ARANG_LLM_DAILY_LIMIT:70}
+    ollama:
+      base-url: ${ARANG_LLM_BASE_URL:http://localhost:11434/v1}
+      model: ${ARANG_LLM_MODEL:qwen2.5-coder:7b}
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      model: ${ARANG_GEMINI_MODEL:gemini-3.5-flash}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+---
+# Default/dev profile: MySQL. Override credentials via env vars for the prototype.
+spring:
+  config:
+    activate:
+      on-profile: "default"
+  datasource:
+    url: ${ARANG_DB_URL:jdbc:mysql://localhost:3306/arang?createDatabaseIfNotExist=true}
+    username: ${ARANG_DB_USER:arang}
+    password: ${ARANG_DB_PASSWORD:arang}
+    driver-class-name: com.mysql.cj.jdbc.Driver

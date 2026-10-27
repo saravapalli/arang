@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Submit an event — Arang</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+        label { display: block; margin-top: 1rem; font-weight: 600; }
+        input, textarea { width: 100%; padding: .5rem; font-size: 1rem; box-sizing: border-box; }
+        button { margin-top: 1.5rem; padding: .6rem 1rem; font-size: 1rem; cursor: pointer; }
+        .hint { color: #6b7280; font-size: .9rem; }
+    </style>
+</head>
+<body>
+<h1>Submit an event</h1>
+<p class="hint">Fill in what you know — you can review and complete the details next.</p>
+
+<form th:action="@{/submit}" method="post">
+    <label for="title">Title</label>
+    <input id="title" name="title" placeholder="e.g. Live jazz night"/>
+
+    <label for="location">Location</label>
+    <input id="location" name="location" placeholder="Venue / address"/>
+
+    <label for="postalCode">Postal code <span class="hint">(required to publish)</span></label>
+    <input id="postalCode" name="postalCode" placeholder="e.g. 10001"/>
+
+    <label for="details">Details</label>
+    <textarea id="details" name="details" rows="4" placeholder="Describe the event; paste any links"></textarea>
+
+    <button type="submit">Create draft</button>
+</form>
+</body>
+</html>

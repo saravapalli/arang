@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Arang — C refined: Map + List</title>
+<style>
+  :root{--ink:#141726;--muted:#6b7280;--line:#e7e7f0;--brand:#5b3df5;--accent:#13c2a3;--pink:#ff4d6d;--amber:#f59e0b}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#f5f5fb}
+  .note{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:10px;padding:9px 14px;margin:12px auto;max-width:1060px;font-size:12.5px}
+  .top{max-width:1060px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:12px}
+  .brand{font-weight:800;font-size:20px;background:linear-gradient(135deg,#5b3df5,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .loc{margin-left:auto;background:#efeafe;color:var(--brand);font-weight:700;border-radius:999px;padding:6px 14px;font-size:13px}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 18px 40px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
+  .fbtn{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .fbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .count{margin-left:auto;align-self:center;color:var(--muted);font-size:13px}
+  .split{display:grid;grid-template-columns:1fr 1.15fr;gap:16px}
+  @media(max-width:820px){.split{grid-template-columns:1fr}}
+  /* compact map */
+  .map{position:relative;height:360px;border-radius:16px;overflow:hidden;border:1px solid var(--line);position:sticky;top:12px;
+    background:
+     repeating-linear-gradient(0deg,#eef1fb 0 29px,#e7ebf8 29px 30px),
+     repeating-linear-gradient(90deg,#eef1fb 0 29px,#e7ebf8 29px 30px),#eef1fb}
+  .road{position:absolute;background:#dfe4f3}
+  .me{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:16px;height:16px;background:var(--brand);border:3px solid #fff;border-radius:999px;box-shadow:0 0 0 5px rgba(91,61,245,.18);z-index:3}
+  .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:2;text-align:center}
+  .pin .mk{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c);box-shadow:0 3px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}
+  .pin .mk span{transform:rotate(45deg);font-size:12px}
+  .pin.sel .mk{outline:3px solid rgba(91,61,245,.4)}
+  /* list */
+  .list{display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow:auto}
+  .row{display:flex;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer}
+  .row:hover{border-color:var(--brand)}
+  .row.sel{border-color:var(--brand);box-shadow:0 0 0 3px rgba(91,61,245,.12)}
+  .row .ic{width:42px;height:42px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+  .row h4{margin:0 0 3px;font-size:15px}.row .mt{color:var(--muted);font-size:12.5px;margin:1px 0}
+  .row .tagc{font-size:11px;background:#f3f0ff;color:var(--brand);padding:2px 9px;border-radius:999px;font-weight:600}
+  .badge{font-size:10.5px;color:var(--accent);font-weight:700;margin-left:6px}
+  /* detail sheet */
+  .sheet{position:fixed;inset:0;background:rgba(10,12,30,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+  .sheet.show{display:flex}
+  .sheet .card{background:#fff;border-radius:18px 18px 0 0;width:min(560px,100%);padding:20px;animation:up .22s}
+  @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet h3{margin:0 0 4px}.sheet .x{float:right;cursor:pointer;color:var(--muted)}
+  .sheet .d{color:var(--muted);margin:3px 0}
+  .sheet .why{margin-top:10px;background:rgba(19,194,163,.1);border:1px solid rgba(19,194,163,.3);color:#0f766e;border-radius:10px;padding:8px 12px;font-size:13px}
+  .sheet .cta{margin-top:14px;display:flex;gap:10px}
+  .btn{border:0;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer}.btn.p{background:var(--brand);color:#fff}.btn.g{background:#fff;border:1.5px solid var(--line)}
+</style></head>
+<body>
+<div class="note">⚠️ Direction C (refined) — compact <b>map + full list</b>, <b>type filters</b> narrow both, click any event (pin or row) for <b>details</b>. Map is stylized; proximity illustrative. P2+.</div>
+<div class="top"><div class="brand">◆ arang</div><div style="color:var(--muted);font-size:13px">what's near you</div><div class="loc">📍 Ashland</div></div>
+<div class="wrap">
+  <div class="filters" id="filters"></div>
+  <div class="split">
+    <div class="map" id="map">
+      <div class="road" style="left:0;top:52%;width:100%;height:6px"></div>
+      <div class="road" style="left:48%;top:0;width:6px;height:100%"></div>
+      <div class="me"></div>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<div class="sheet" id="sheet"><div class="card"><span class="x" onclick="closeSheet()">✕ close</span>
+  <h3 id="sT"></h3><div class="d" id="sWhen"></div><div class="d" id="sWhere"></div><div class="why" id="sWhy"></div>
+  <div class="cta"><span class="btn p">Get tickets / info</span><span class="btn g">♡ Save</span></div></div></div>
+<script>
+var TYPES=[{k:'all',e:'✦',n:'All',c:'#5b3df5'},{k:'music',e:'🎵',n:'Music',c:'#5b3df5'},{k:'food',e:'🍽️',n:'Food',c:'#13c2a3'},
+  {k:'family',e:'👨‍👩‍👧',n:'Family',c:'#f59e0b'},{k:'arts',e:'🎨',n:'Arts',c:'#ff4d6d'},{k:'outdoor',e:'🥾',n:'Outdoor',c:'#0ea5e9'},
+  {k:'sports',e:'🏃',n:'Sports',c:'#8b5cf6'},{k:'workshop',e:'🛠️',n:'Workshop',c:'#ec4899'},{k:'offer',e:'🏷️',n:'Deals',c:'#f43f5e'}];
+var EVENTS=[
+  {id:1,t:'Blue Door Jazz Night',k:'music',when:'Sat 8:00 PM',where:'Blue Door · 1.2 km',x:60,y:66,v:1,why:'matches “music” · ✓ verified · walkable'},
+  {id:2,t:'Riverside Farmers Market',k:'food',when:'Sat 9:00 AM',where:'Riverside Park · 0.6 km',x:40,y:40,v:1,why:'closest · free'},
+  {id:3,t:'Family Movie in the Park',k:'family',when:'Sat 7:00 PM',where:'Lithia Park · 1.1 km',x:64,y:34,v:0,why:'great with kids · free'},
+  {id:4,t:'Open-Air Art Fair',k:'arts',when:'Sun 10:00 AM',where:'Market Sq · 2.1 km',x:30,y:70,v:0,why:'relaxed Sunday · free'},
+  {id:5,t:'Sunrise Trail Hike',k:'outdoor',when:'Sun 6:00 AM',where:'Eagle Ridge · 4.3 km',x:18,y:24,v:0,why:'outdoorsy pick'},
+  {id:6,t:'Community 5K Run',k:'sports',when:'Sun 7:30 AM',where:'Downtown · 2.6 km',x:72,y:58,v:0,why:'active · cheap'},
+  {id:7,t:'Kids Science Workshop',k:'family',when:'Sun 11:00 AM',where:'Town Library · 1.8 km',x:56,y:46,v:1,why:'for the kids · indoor'},
+  {id:8,t:'2-for-1 Tacos Weekend',k:'offer',when:'Fri–Sun',where:'La Mesa · 0.9 km',x:44,y:60,v:1,why:'weekend deal · ✓ verified'},
+  {id:9,t:'Pottery Taster Class',k:'workshop',when:'Sat 2:00 PM',where:'Clay Studio · 1.5 km',x:68,y:50,v:0,why:'hands-on'}
+];
+var active='all',selId=null;
+function color(k){var t=TYPES.find(function(x){return x.k===k});return t?t.c:'#5b3df5'}
+function emo(k){var t=TYPES.find(function(x){return x.k===k});return t?t.e:'✦'}
+function renderFilters(){var f=document.getElementById('filters');f.innerHTML='';
+  TYPES.forEach(function(t){var b=document.createElement('div');b.className='fbtn'+(active===t.k?' active':'');
+    b.innerHTML=t.e+' '+t.n;b.onclick=function(){active=t.k;selId=null;render()};f.appendChild(b);});
+  var c=document.createElement('div');c.className='count';c.id='cnt';f.appendChild(c);}
+function list(){return EVENTS.filter(function(e){return active==='all'||e.k===active})}
+function render(){
+  renderFilters();
+  var items=list();
+  document.getElementById('cnt').textContent=items.length+' events near Ashland';
+  // list
+  var L=document.getElementById('list');L.innerHTML='';
+  items.forEach(function(e){var r=document.createElement('div');r.className='row'+(selId===e.id?' sel':'');
+    r.innerHTML='<div class="ic" style="background:'+color(e.k)+'">'+emo(e.k)+'</div><div><h4>'+e.t+(e.v?'<span class="badge">✓ verified</span>':'')+'</h4><div class="mt">🕒 '+e.when+'</div><div class="mt">📍 '+e.where+'</div><span class="tagc">'+(TYPES.find(function(x){return x.k===e.k}).n)+'</span></div>';
+    r.onclick=function(){open(e)};L.appendChild(r);});
+  // pins
+  var M=document.getElementById('map');M.querySelectorAll('.pin').forEach(function(p){p.remove()});
+  items.forEach(function(e){var p=document.createElement('div');p.className='pin'+(selId===e.id?' sel':'');
+    p.style.left=e.x+'%';p.style.top=e.y+'%';
+    p.innerHTML='<div class="mk" style="--c:'+color(e.k)+'"><span>'+emo(e.k)+'</span></div>';
+    p.onclick=function(){open(e)};M.appendChild(p);});
+}
+function open(e){selId=e.id;render();
+  document.getElementById('sT').textContent=e.t;
+  document.getElementById('sWhen').textContent='🕒 '+e.when;
+  document.getElementById('sWhere').textContent='📍 '+e.where;
+  document.getElementById('sWhy').textContent='✦ '+e.why;
+  document.getElementById('sheet').classList.add('show');}
+function closeSheet(){document.getElementById('sheet').classList.remove('show')}
+render();
+</script>
+</body></html>

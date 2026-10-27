@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Arang — Direction A: Weekend Concierge</title>
+<style>
+  :root{--ink:#141726;--muted:#7a8094;--brand:#5b3df5;--accent:#13c2a3;--bg:#0f1020}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.55 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:
+    radial-gradient(900px 500px at 70% -5%,#2a1b6b,transparent),var(--bg);color:#eef0f8;min-height:100vh}
+  .note{background:#20223a;color:#c9cce0;border:1px solid #343759;border-radius:10px;padding:9px 14px;margin:12px auto;max-width:560px;font-size:12.5px}
+  .app{max-width:560px;margin:0 auto;padding:0 16px 40px}
+  .top{display:flex;align-items:center;gap:10px;padding:18px 4px}
+  .brand{font-weight:800;font-size:20px;background:linear-gradient(135deg,#8b5cf6,#ff6b9d);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .top .sub{color:var(--muted);font-size:13px}
+  .thread{display:flex;flex-direction:column;gap:14px;padding:10px 0}
+  .msg{max-width:85%;padding:13px 16px;border-radius:18px;font-size:15px;animation:pop .25s}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .bot{background:#1b1d33;border:1px solid #2c2f4e;border-bottom-left-radius:6px;align-self:flex-start}
+  .me{background:linear-gradient(135deg,#5b3df5,#7c5cff);border-bottom-right-radius:6px;align-self:flex-end}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+  .chip{border:1px solid #3a3d61;background:#191b30;color:#cdd0e6;border-radius:999px;padding:8px 14px;font-size:13.5px;cursor:pointer}
+  .chip:hover{border-color:var(--brand);color:#fff}
+  .plan{align-self:flex-start;max-width:100%;width:100%;display:flex;flex-direction:column;gap:10px}
+  .pcard{background:#15172b;border:1px solid #2c2f4e;border-radius:16px;overflow:hidden;display:flex}
+  .pcard .im{width:92px;background:linear-gradient(135deg,#5b3df5,#ff4d6d);flex:none;position:relative}
+  .pcard .im .n{position:absolute;top:8px;left:8px;background:#fff;color:var(--brand);font-weight:800;width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .pcard .in{padding:12px 14px;flex:1}
+  .pcard h4{margin:0 0 4px;font-size:16px}
+  .pcard .mt{color:var(--muted);font-size:12.5px;margin:2px 0}
+  .why{margin-top:7px;font-size:12px;color:#a7f3d0;background:rgba(19,194,163,.12);border:1px solid rgba(19,194,163,.3);border-radius:8px;padding:5px 9px;display:inline-block}
+  .reactions{display:flex;gap:8px;margin-top:4px}
+  .rx{font-size:12.5px;color:#cdd0e6;border:1px solid #3a3d61;border-radius:999px;padding:6px 12px;cursor:pointer}
+  .rx:hover{border-color:var(--accent);color:#fff}
+  .composer{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--bg) 30%);padding:14px 0 4px;display:flex;gap:8px}
+  .composer input{flex:1;background:#1b1d33;border:1px solid #2c2f4e;color:#fff;border-radius:14px;padding:14px 16px;font-size:15px;outline:0}
+  .composer .send{background:linear-gradient(135deg,#5b3df5,#7c5cff);border:0;color:#fff;border-radius:14px;padding:0 20px;font-weight:700;cursor:pointer}
+  .typing{display:inline-flex;gap:4px}.typing i{width:7px;height:7px;background:#6b6f93;border-radius:999px;animation:bl 1s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes bl{0%,80%{opacity:.3}40%{opacity:1}}
+</style></head>
+<body>
+<div class="note">⚠️ Direction A — <b>Weekend Concierge</b> (conversational/agentic). No search bar, no grid: you talk, Arang curates a few picks and shows <i>why</i>. Click the suggestion chips. Exploratory P2+.</div>
+<div class="app">
+  <div class="top"><div class="brand">◆ arang</div><div class="sub">your weekend, planned</div></div>
+  <div class="thread" id="thread"></div>
+  <div class="composer"><input id="inp" placeholder="Tell me your vibe…" onkeydown="if(event.key==='Enter')say(this.value)"><button class="send" onclick="say(document.getElementById('inp').value)">Send</button></div>
+</div>
+<script>
+var thread=document.getElementById('thread');
+function add(html,cls){var d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;thread.appendChild(d);window.scrollTo(0,document.body.scrollHeight);return d;}
+function raw(html){var d=document.createElement('div');d.innerHTML=html;thread.appendChild(d);window.scrollTo(0,document.body.scrollHeight);return d;}
+function chips(opts){var w=document.createElement('div');w.className='chips';opts.forEach(function(o){var c=document.createElement('span');c.className='chip';c.textContent=o;c.onclick=function(){say(o)};w.appendChild(c)});thread.appendChild(w);window.scrollTo(0,document.body.scrollHeight);return w;}
+function typing(cb){var t=add('<span class="typing"><i></i><i></i><i></i></span>','bot');setTimeout(function(){t.remove();cb()},750);}
+function say(text){if(!text)return;document.getElementById('inp').value='';add(text,'me');
+  var q=text.toLowerCase();
+  typing(function(){
+    if(q.indexOf('kid')>-1||q.indexOf('family')>-1||q.indexOf('chill')>-1){ plan('family'); }
+    else if(q.indexOf('music')>-1||q.indexOf('jazz')>-1||q.indexOf('night')>-1){ plan('music'); }
+    else { ask(); }
+  });
+}
+function ask(){
+  add("Hey 👋 I'm your weekend in <b>Ashland</b>. What are you in the mood for?",'bot');
+  chips(['Something chill with the kids','Live music Saturday night','Outdoorsy & cheap','Surprise me']);
+}
+function plan(kind){
+  var sets={
+    family:[['1','Family Movie in the Park','Sat 7:00 PM · 1.1 km','matches “with the kids” · free · verified'],
+            ['2','Kids Science Workshop','Sun 11:00 AM · 1.8 km','great for kids · indoor backup if it rains'],
+            ['3','Riverside Farmers Market','Sat 9:00 AM · 0.6 km','easy morning · free · closest to you']],
+    music:[['1','Blue Door Jazz Night','Sat 8:00 PM · 1.2 km','matches “live music” · ✓ verified venue · walkable'],
+           ['2','Indie Rock Showcase','Sat 9:00 PM · 3.0 km','if you want louder · later start'],
+           ['3','2-for-1 Tacos nearby','before the show · 0.9 km','pairs with your night · weekend deal']]
+  };
+  add("Here's a <b>plan for your Saturday</b> — I picked 3 and why 👇",'bot');
+  var wrap=document.createElement('div');wrap.className='msg bot plan';
+  sets[kind].forEach(function(e){
+    wrap.innerHTML+='<div class="pcard"><div class="im"><div class="n">'+e[0]+'</div></div><div class="in"><h4>'+e[1]+'</h4><div class="mt">🕒 '+e[2]+'</div><div class="why">✦ '+e[3]+'</div></div></div>';
+  });
+  thread.appendChild(wrap);
+  var rx=document.createElement('div');rx.className='msg bot';rx.style.background='transparent';rx.style.border='0';
+  rx.innerHTML='<div class="reactions"><span class="rx" onclick="refine()">↻ Swap one</span><span class="rx" onclick="lock()">✓ Lock this plan</span><span class="rx" onclick="say(\'later in the day\')">🕒 Later instead</span></div>';
+  thread.appendChild(rx);window.scrollTo(0,document.body.scrollHeight);
+}
+function refine(){typing(function(){add("Swapped the 2nd pick for an <b>Open-Air Art Fair (Sun 10 AM, 2.1 km)</b> — more your pace. Want it locked?",'bot');});}
+function lock(){typing(function(){add("Locked 🎉 I'll remind you Saturday morning and send tickets links on WhatsApp. Have a great weekend!",'bot');});}
+ask();
+</script>
+</body></html>

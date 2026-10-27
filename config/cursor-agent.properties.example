@@ -1,0 +1,27 @@
+# Cursor Background Agents API — secrets (TEMPLATE)
+# Copy this file to  cursor-agent.properties  (same dir) and fill in real values.
+# The real file is git-ignored; never commit actual keys.
+#
+# These are read by the app as arang.cursor.* (via env or this file). Used to call
+# POST https://api.cursor.com/v1/agents  (Basic auth: API key as the username, empty password).
+
+# Cursor API key (the "-u YOUR_API_KEY:" in the curl). REQUIRED.
+arang.cursor.api-key=crsr_ce777f4619d300d4beff663a5684c9cf84044fd15bc952bf5ffa5732618b201a
+
+# Base URL (override only if needed).
+arang.cursor.base-url=https://api.cursor.com
+
+# Default model + params for launched agents.
+arang.cursor.model-id=composer-2
+arang.cursor.fast=true
+
+# Default repo the agent should work on.
+arang.cursor.repo-url=https://github.com/your-org/your-repo
+arang.cursor.starting-ref=main
+
+# Auto-create a PR when the agent finishes.
+arang.cursor.auto-create-pr=true
+
+# Optional MCP server credentials referenced in the request payload.
+arang.cursor.linear-api-key=YOUR_LINEAR_API_KEY
+arang.cursor.github-token=YOUR_GITHUB_TOKEN

@@ -1,0 +1,18 @@
+# Test profile: in-memory H2 in MySQL-compatibility mode so the skeleton boots and tests run
+# without a live MySQL server. Flyway runs the same V1 migration against H2 (MySQL mode).
+spring:
+  datasource:
+    # Unique in-memory DB per context so Flyway always migrates a fresh schema and test
+    # contexts never share/clobber each other's state (DB_CLOSE_DELAY keeps it alive for the
+    # context's lifetime).
+    url: jdbc:h2:mem:arang-${random.uuid};MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: true
+
+# Deterministic verify token for webhook tests.
+arang:
+  whatsapp:
+    verify-token: test-verify-token

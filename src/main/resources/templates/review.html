@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Review your event — Arang</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+        label { display: block; margin-top: 1rem; font-weight: 600; }
+        input { width: 100%; padding: .5rem; font-size: 1rem; box-sizing: border-box; }
+        .row { margin-top: 1.5rem; display: flex; gap: .5rem; }
+        .flag { color: #b45309; font-size: .9rem; }
+        .saved { background: #dcfce7; padding: .6rem; border-radius: 6px; }
+        button { padding: .6rem 1rem; font-size: 1rem; cursor: pointer; }
+        .danger { color: #b91c1c; }
+    </style>
+</head>
+<body>
+<h1>Review your event</h1>
+<p th:if="${saved}" class="saved">✅ Saved.</p>
+<p th:if="${published}" class="saved">✅ Published! Your event is now live.</p>
+<p th:if="${error}" class="flag" th:text="${error}"></p>
+
+<p th:if="${event.extractedConfidence == null}" class="flag">
+    ⚠️ Nothing could be auto-read — please fill in the details below.
+</p>
+
+<!-- Edit / save -->
+<form th:action="@{'/review/' + ${event.id}}" method="post">
+    <input type="hidden" name="token" th:value="${token}"/>
+
+    <label for="title">Title</label>
+    <input id="title" name="title" th:value="${event.title}" placeholder="e.g. Live jazz night"/>
+
+    <label for="startsAt">Starts at (YYYY-MM-DDTHH:MM)</label>
+    <input id="startsAt" name="startsAt" th:value="${event.startsAt}" placeholder="2026-11-01T19:00"/>
+
+    <label for="location">Location</label>
+    <input id="location" name="location" th:value="${event.location}" placeholder="Venue / address"/>
+
+    <label for="postalCode">Postal code <span class="flag">(required to publish)</span></label>
+    <input id="postalCode" name="postalCode" th:value="${event.postalCode}" placeholder="e.g. 10001"/>
+
+    <div class="row">
+        <button type="submit">Save changes</button>
+    </div>
+</form>
+
+<!-- Submit / publish (T6) -->
+<form th:action="@{'/review/' + ${event.id} + '/submit'}" method="post" class="row">
+    <input type="hidden" name="token" th:value="${token}"/>
+    <button type="submit" th:text="${event.status == 'published'} ? 'Published ✓ (re-publish)' : 'Submit / Publish'">Submit</button>
+</form>
+
+<!-- Delete (T6) -->
+<form th:action="@{'/review/' + ${event.id} + '/delete'}" method="post" class="row">
+    <input type="hidden" name="token" th:value="${token}"/>
+    <button type="submit" class="danger">Delete this event</button>
+</form>
+
+<p th:text="'Status: ' + ${event.status}"></p>
+</body>
+</html>

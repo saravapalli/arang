@@ -1,0 +1,14 @@
+{
+  "name": "arang-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end tests for Arang Producer Intake: drives the UI and verifies DB rows.",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "mysql2": "^3.11.0"
+  }
+}
