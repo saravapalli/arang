@@ -12,6 +12,13 @@ spring:
   flyway:
     enabled: true
 
+# Behind a reverse proxy / tunnel (e.g. Cloudflare Tunnel) that terminates TLS: honor the
+# X-Forwarded-Proto / X-Forwarded-Host / X-Forwarded-For headers so the app knows the public
+# request was https://<tunnel-host> even though it receives plain HTTP on 127.0.0.1:8080.
+# Without this, redirects (e.g. the review-page save redirect) and absolute URLs come out http://.
+server:
+  forward-headers-strategy: framework
+
 # WhatsApp integration (REQ-01 verify, REQ-08 reply). Secrets via env, never committed.
 arang:
   whatsapp:

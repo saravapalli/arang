@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Confirm before touching prod (:8080)",
+      "trigger": "PreToolUse",
+      "description": "Asks the user to confirm any shell command that releases to or restarts prod on port 8080.",
+      "matcher": "execute_bash",
+      "action": {
+        "type": "command",
+        "command": "if grep -Eq 'release\\.sh|SERVER_PORT=8080|kill .*8080|lsof -t[^\"]*:?8080' ; then echo '{\"hookSpecificOutput\":{\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"This command touches PROD (:8080). Confirm you want a prod release.\"}}'; fi; exit 0"
+      }
+    }
+  ]
+}

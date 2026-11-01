@@ -88,13 +88,13 @@ class ReviewControllerTest {
                 .param("token", "tok-edit")
                 .param("title", "Updated Title")
                 .param("location", "Downtown Hall")
-                .param("postalCode", "10001"))
+                .param("postalCode", "01721"))
             .andExpect(status().isOk());
 
         Event reloaded = events.findById(e.getId()).orElseThrow();
         assertThat(reloaded.getTitle()).isEqualTo("Updated Title");
         assertThat(reloaded.getLocation()).isEqualTo("Downtown Hall");
-        assertThat(reloaded.getPostalCode()).isEqualTo("10001");
+        assertThat(reloaded.getPostalCode()).isEqualTo("01721");
     }
 
     @Test

@@ -36,7 +36,15 @@ public final class ExtractionJsonParser {
           "event_type": one of concert/offer/workshop/festival/class/other or null,
           "confidence": { "title": 0..1, "starts_at": 0..1, "location": 0..1 },
           "attributes": { },                 // any OTHER useful details found, as key/value pairs
+          "categories": [ ],                 // 1-3 from the CURATED list below that best fit
+          "tags": [ ],                       // open free-form tags for anything not covered
           "raw_text": string|null            // the full text you read (esp. from an image flyer)
+        For "categories", choose ONLY from this curated list (use the exact lowercase word):
+        music, food, family, arts, outdoor, sports, workshop, nightlife, theatre, film,
+        community, wellness, market, offer, other. Pick the 1-3 that fit best; if none fit, use
+        "other". NEVER invent a category outside this list.
+        For "tags", you MAY mint free-form lowercase tags for specifics the categories miss
+        (e.g. "navaratri", "jazz", "5k", "vegan"). Tags are open; categories are not.
         For "attributes", use meaningful lower_snake_case keys and capture everything else of value:
         e.g. contact_name, phone, email, instagram, website, registration_url, ticket_url, price,
         age_groups, organizer, cost, rsvp. Omit keys you don't find; never invent values.
@@ -91,11 +99,30 @@ public final class ExtractionJsonParser {
                 confOrNull(conf, "starts_at"),
                 confOrNull(conf, "location"),
                 parseAttributes(n.get("attributes")),
-                textOrNull(n, "raw_text"));
+                textOrNull(n, "raw_text"),
+                parseStringArray(n.get("categories")),
+                parseStringArray(n.get("tags")));
         } catch (Exception e) {
             log.warn("LLM JSON parse failed: {}", e.toString());
             return ExtractedFields.empty();
         }
+    }
+
+    /** Read a JSON string array into a lowercase, de-blanked list. */
+    private static java.util.List<String> parseStringArray(JsonNode node) {
+        if (node == null || !node.isArray()) {
+            return java.util.List.of();
+        }
+        var out = new java.util.ArrayList<String>();
+        node.forEach(v -> {
+            if (v != null && !v.isNull() && v.isValueNode()) {
+                String s = v.asString().trim().toLowerCase();
+                if (!s.isEmpty() && !"null".equals(s) && !out.contains(s)) {
+                    out.add(s);
+                }
+            }
+        });
+        return out;
     }
 
     /** Read the "attributes" object into a map of meaningful-key → value (skips blanks/nulls). */

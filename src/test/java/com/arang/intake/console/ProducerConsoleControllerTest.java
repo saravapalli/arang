@@ -38,7 +38,7 @@ class ProducerConsoleControllerTest {
 
     @Test
     void consolePageRenders() throws Exception {
-        mvc.perform(get("/")).andExpect(status().isOk());
+        mvc.perform(get("/console")).andExpect(status().isOk());
     }
 
     @Test

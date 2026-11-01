@@ -36,6 +36,8 @@ public class ReviewController {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("event", e);
         model.addAttribute("token", token);
+        model.addAttribute("categories", reviewService.categoriesFor(id));
+        model.addAttribute("allCategories", reviewService.allCategories());
         return "review";
     }
 
@@ -56,6 +58,8 @@ public class ReviewController {
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("event", e);
         model.addAttribute("token", token);
+        model.addAttribute("categories", reviewService.categoriesFor(id));
+        model.addAttribute("allCategories", reviewService.allCategories());
         model.addAttribute("saved", true);
         return "review";
     }
@@ -72,8 +76,13 @@ public class ReviewController {
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("event", e);
         model.addAttribute("token", token);
+        model.addAttribute("categories", reviewService.categoriesFor(id));
+        model.addAttribute("allCategories", reviewService.allCategories());
         if (result == ReviewService.SubmitResult.MISSING_POSTAL) {
             model.addAttribute("error", "A postal code is required to publish.");
+        } else if (result == ReviewService.SubmitResult.UNGEOCODABLE_POSTAL) {
+            model.addAttribute("error", "We couldn’t locate that postal code on the map, so the event "
+                + "can’t be published yet. Please check the postal code (it must be a town Arang covers).");
         } else {
             model.addAttribute("published", true);
         }
@@ -89,5 +98,29 @@ public class ReviewController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return "deleted";
+    }
+
+    /** REQ-18: add a curated category to the event. */
+    @PostMapping("/review/{id}/category/add")
+    public String addCategory(@PathVariable Long id,
+                              @RequestParam(required = false) String token,
+                              @RequestParam String category,
+                              Model model) {
+        if (!reviewService.addCategory(id, token, category)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return "redirect:/review/" + id + "?token=" + token;
+    }
+
+    /** REQ-18: remove a curated category from the event. */
+    @PostMapping("/review/{id}/category/remove")
+    public String removeCategory(@PathVariable Long id,
+                                 @RequestParam(required = false) String token,
+                                 @RequestParam String category,
+                                 Model model) {
+        if (!reviewService.removeCategory(id, token, category)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return "redirect:/review/" + id + "?token=" + token;
     }
 }

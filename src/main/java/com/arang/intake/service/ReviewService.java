@@ -21,17 +21,52 @@ import com.arang.intake.model.Event;
 public class ReviewService {
 
     /** Outcome of a submit attempt. */
-    public enum SubmitResult { PUBLISHED, MISSING_POSTAL, UNAUTHORIZED }
+    public enum SubmitResult { PUBLISHED, MISSING_POSTAL, UNGEOCODABLE_POSTAL, UNAUTHORIZED }
 
     private final EventDao events;
     private final EventMetadataDao metadata;
     private final PostalGeoService postalGeo;
+    private final com.arang.intake.dao.CategoryTagDao categoryTags;
 
     public ReviewService(EventDao events, EventMetadataDao metadata,
-                         PostalGeoService postalGeo) {
+                         PostalGeoService postalGeo,
+                         com.arang.intake.dao.CategoryTagDao categoryTags) {
         this.events = events;
         this.metadata = metadata;
         this.postalGeo = postalGeo;
+        this.categoryTags = categoryTags;
+    }
+
+    /** The curated categories currently on an event (REQ-18). */
+    @Transactional(readOnly = true)
+    public java.util.List<String> categoriesFor(Long eventId) {
+        return categoryTags.categoriesFor(eventId);
+    }
+
+    /** The full curated vocabulary for the review-page picker. */
+    @Transactional(readOnly = true)
+    public java.util.List<String> allCategories() {
+        return categoryTags.allCategoryNames();
+    }
+
+    /** Add a curated category to an event, token-gated (REQ-18). @return true if authorized. */
+    @Transactional
+    public boolean addCategory(Long eventId, String token, String category) {
+        if (authorize(eventId, token).isEmpty()) {
+            return false;
+        }
+        categoryTags.linkCategories(eventId, java.util.List.of(category));
+        return true;
+    }
+
+    /** Remove a curated category from an event, token-gated (REQ-18). @return true if authorized. */
+    @Transactional
+    public boolean removeCategory(Long eventId, String token, String category) {
+        if (authorize(eventId, token).isEmpty()) {
+            return false;
+        }
+        categoryTags.unlinkCategory(eventId, category);
+        return true;
     }
 
     /** @return the event iff the token is valid, matches, and is unexpired; else empty. */
@@ -95,10 +130,15 @@ public class ReviewService {
         if (e.getCountryCode() == null || e.getCountryCode().isBlank()) {
             e.setCountryCode("US");                        // REQ-13 default
         }
-        postalGeo.deriveCentroid(e.getPostalCode(), e.getCountryCode()).ifPresent(latlon -> {
-            e.setLatitude(latlon[0]);
-            e.setLongitude(latlon[1]);
-        });
+        // A published event must be DISPLAYABLE: its postal must resolve to coordinates, else it
+        // can never pin or area-match in discovery (the event-34 bug). Reject publish otherwise.
+        Optional<java.math.BigDecimal[]> centroid =
+            postalGeo.deriveCentroid(e.getPostalCode(), e.getCountryCode());
+        if (centroid.isEmpty()) {
+            return SubmitResult.UNGEOCODABLE_POSTAL;
+        }
+        e.setLatitude(centroid.get()[0]);
+        e.setLongitude(centroid.get()[1]);
         e.setStatus("published");
         e.touchUpdatedAt();
         events.update(e);

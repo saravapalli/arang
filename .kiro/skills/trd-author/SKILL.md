@@ -1,6 +1,6 @@
 ---
 name: trd-author
-description: Author the TRD (verifiable technical requirements) for an Arang feature as its own file, each REQ-### tracing to a PRD acceptance criterion. One folder per feature, stage-named files (docs/<feature>/trd.md). Use after a PRD is approved, before the SDD.
+description: Author the TRD (verifiable technical requirements) for an Arang feature as its own file, each REQ-### tracing to a PRD acceptance criterion. One folder per feature, stage-named files (docs/<phase>-<feature>/trd.md). Use after a PRD is approved, before the SDD.
 ---
 
 # TRD Author
@@ -11,7 +11,7 @@ GitHub Spec Kit's success-criteria guidance (`templates/commands/specify.md`, MI
 rewritten for Arang; see `docs/reference/sdd-frameworks-research.md`.
 
 ## When to use
-After a PRD is approved, before the SDD. The TRD is its own file: `docs/<feature>/trd.md`
+After a PRD is approved, before the SDD. The TRD is its own file: `docs/<phase>-<feature>/trd.md`
 (one folder per feature, stage-named files — see steering).
 
 ## Procedure

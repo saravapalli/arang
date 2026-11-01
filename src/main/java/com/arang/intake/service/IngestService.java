@@ -41,12 +41,14 @@ public class IngestService {
     private final MediaFetcher mediaFetcher;
     private final OcrService ocrService;
     private final EventEnrichmentService enrichment;
+    private final com.arang.intake.media.MediaStore mediaStore;
 
     public IngestService(UserDao users, EventDao events,
                          EventMetadataDao metadata, ProcessedMessageDao ledger,
                          UrlExtractor urlExtractor, EditTokenService editTokens,
                          MediaFetcher mediaFetcher, OcrService ocrService,
-                         EventEnrichmentService enrichment) {
+                         EventEnrichmentService enrichment,
+                         com.arang.intake.media.MediaStore mediaStore) {
         this.users = users;
         this.events = events;
         this.metadata = metadata;
@@ -56,6 +58,7 @@ public class IngestService {
         this.mediaFetcher = mediaFetcher;
         this.ocrService = ocrService;
         this.enrichment = enrichment;
+        this.mediaStore = mediaStore;
     }
 
     /**
@@ -140,7 +143,8 @@ public class IngestService {
     public Event ingestImageBytes(byte[] imageBytes, String mimeType, String caption,
                                   String senderPhone, String senderName) {
         Long submittedBy = resolveUserId(senderPhone, senderName);
-        Event saved = createDraft("image", caption, null, submittedBy);
+        String mediaRef = mediaStore.store(imageBytes, mimeType); // persist the flyer (P1 fix)
+        Event saved = createDraft("image", caption, mediaRef, submittedBy);
         List<String> urls = extractAndStoreUrls(saved, caption);
         finishConfidence(saved, urls);
         enrichment.enrichFromImageAsync(saved.getId(), imageBytes, mimeType, caption);

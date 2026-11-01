@@ -30,14 +30,17 @@ public class EventEnrichmentService {
     private final EventDao events;
     private final EventFieldConfidenceDao fieldConfidence;
     private final com.arang.intake.dao.EventMetadataDao metadata;
+    private final com.arang.intake.dao.CategoryTagDao categoryTags;
 
     public EventEnrichmentService(EventExtractor extractor, EventDao events,
                                   EventFieldConfidenceDao fieldConfidence,
-                                  com.arang.intake.dao.EventMetadataDao metadata) {
+                                  com.arang.intake.dao.EventMetadataDao metadata,
+                                  com.arang.intake.dao.CategoryTagDao categoryTags) {
         this.extractor = extractor;
         this.events = events;
         this.fieldConfidence = fieldConfidence;
         this.metadata = metadata;
+        this.categoryTags = categoryTags;
     }
 
     private void metaFlag(Long eventId, String key, String value) {
@@ -131,6 +134,16 @@ public class EventEnrichmentService {
         // Backfill raw_message with the full read text (esp. flyer OCR) if we have none yet.
         if (isBlank(e.getRawMessage()) && f.rawText() != null && !f.rawText().isBlank()) {
             e.setRawMessage(f.rawText());
+            changed = true;
+        }
+
+        // Categorization (REQ-15/16/17): link curated categories (vocab-validated) + open tags.
+        if (!f.categories().isEmpty()) {
+            categoryTags.linkCategories(eventId, f.categories());
+            changed = true;
+        }
+        if (!f.tags().isEmpty()) {
+            categoryTags.linkTags(eventId, f.tags());
             changed = true;
         }
 

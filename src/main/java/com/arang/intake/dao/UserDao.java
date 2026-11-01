@@ -24,6 +24,7 @@ public class UserDao {
         u.setId(rs.getLong("id"));
         u.setPhoneNumber(rs.getString("phone_number"));
         u.setName(rs.getString("name"));
+        u.setExternalRef(rs.getString("external_ref"));
         return u;
     };
 
@@ -37,12 +38,13 @@ public class UserDao {
     public User insert(User u) {
         KeyHolder keys = new GeneratedKeyHolder();
         jdbc.update("""
-            INSERT INTO `user` (phone_number, name, created_at, updated_at)
-            VALUES (:phone, :name, :createdAt, :updatedAt)
+            INSERT INTO `user` (phone_number, name, external_ref, created_at, updated_at)
+            VALUES (:phone, :name, :externalRef, :createdAt, :updatedAt)
             """,
             new MapSqlParameterSource()
                 .addValue("phone", u.getPhoneNumber())
                 .addValue("name", u.getName())
+                .addValue("externalRef", u.getExternalRef())
                 .addValue("createdAt", Timestamp.from(Instant.now()))
                 .addValue("updatedAt", Timestamp.from(Instant.now())),
             keys, new String[] { "id" });
@@ -52,8 +54,16 @@ public class UserDao {
 
     public Optional<User> findByPhoneNumber(String phoneNumber) {
         List<User> found = jdbc.query(
-            "SELECT id, phone_number, name FROM `user` WHERE phone_number = :phone",
+            "SELECT id, phone_number, name, external_ref FROM `user` WHERE phone_number = :phone",
             Map.of("phone", phoneNumber), MAPPER);
+        return found.stream().findFirst();
+    }
+
+    /** Find a web consumer by their cookie id (REQ-12, DD-P2-2). */
+    public Optional<User> findByExternalRef(String externalRef) {
+        List<User> found = jdbc.query(
+            "SELECT id, phone_number, name, external_ref FROM `user` WHERE external_ref = :ref",
+            Map.of("ref", externalRef), MAPPER);
         return found.stream().findFirst();
     }
 

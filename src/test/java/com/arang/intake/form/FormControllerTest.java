@@ -44,7 +44,7 @@ class FormControllerTest {
         mvc.perform(post("/submit")
                 .param("title", "Open Mic")
                 .param("location", "The Bar")
-                .param("postalCode", "10001")
+                .param("postalCode", "01721")
                 .param("details", "come by https://ex.com/mic"))
             .andExpect(status().is3xxRedirection())
             .andExpect(header().string("Location", org.hamcrest.Matchers.startsWith("/review/")));
@@ -55,7 +55,7 @@ class FormControllerTest {
         assertThat(e.getSubmittedBy()).isNull();            // no WhatsApp id
         assertThat(e.getStatus()).isEqualTo("draft");
         assertThat(e.getTitle()).isEqualTo("Open Mic");
-        assertThat(e.getPostalCode()).isEqualTo("10001");
+        assertThat(e.getPostalCode()).isEqualTo("01721");
         assertThat(e.getEditToken()).isNotNull();           // reviewable via token link
     }
 }

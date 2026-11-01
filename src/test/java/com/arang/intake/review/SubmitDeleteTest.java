@@ -54,7 +54,7 @@ class SubmitDeleteTest {
 
     @Test
     void submitWithKnownPostalPublishesAndDerivesGeo() {
-        Event e = draft("tok", "10001"); // in the bundled centroid set
+        Event e = draft("tok", "01721"); // Ashland, MA — in the bundled dataset
         assertThat(reviewService.submit(e.getId(), "tok")).isEqualTo(SubmitResult.PUBLISHED);
         Event p = events.findById(e.getId()).orElseThrow();
         assertThat(p.getStatus()).isEqualTo("published");
@@ -63,33 +63,45 @@ class SubmitDeleteTest {
     }
 
     @Test
-    void submitWithUnknownPostalStillPublishesWithoutGeo() {
-        Event e = draft("tok", "99999"); // not in bundled set
+    void submitWithUngeocodablePostalIsRejected() {
+        Event e = draft("tok", "99999"); // not in the bundled centroid set → cannot be located
+        // A published event must be displayable (pin + area match). An ungeocodable postal is
+        // rejected rather than silently publishing an event that can never surface in discovery.
+        assertThat(reviewService.submit(e.getId(), "tok")).isEqualTo(SubmitResult.UNGEOCODABLE_POSTAL);
+        Event p = events.findById(e.getId()).orElseThrow();
+        assertThat(p.getStatus()).isEqualTo("draft"); // stays a draft
+        assertThat(p.getLatitude()).isNull();
+    }
+
+    @Test
+    void nearbyAshlandAreaTownPublishesAndGeocodes() {
+        // 01532 (Northborough) is an Ashland-area MA town — now covered, so it publishes + pins.
+        Event e = draft("tok", "01532");
         assertThat(reviewService.submit(e.getId(), "tok")).isEqualTo(SubmitResult.PUBLISHED);
         Event p = events.findById(e.getId()).orElseThrow();
         assertThat(p.getStatus()).isEqualTo("published");
-        assertThat(p.getLatitude()).isNull(); // no centroid, but publish succeeded
+        assertThat(p.getLatitude()).isNotNull();
     }
 
     @Test
     void publishDoesNotLockEditing() {
-        Event e = draft("tok", "10001");
+        Event e = draft("tok", "01721");
         reviewService.submit(e.getId(), "tok");
         // edit after publish still works (AC-021a)
-        boolean edited = reviewService.saveEdits(e.getId(), "tok", "New Title", null, null, "10001");
+        boolean edited = reviewService.saveEdits(e.getId(), "tok", "New Title", null, null, "01721");
         assertThat(edited).isTrue();
         assertThat(events.findById(e.getId()).orElseThrow().getTitle()).isEqualTo("New Title");
     }
 
     @Test
     void submitWithBadTokenIsUnauthorized() {
-        Event e = draft("tok", "10001");
+        Event e = draft("tok", "01721");
         assertThat(reviewService.submit(e.getId(), "wrong")).isEqualTo(SubmitResult.UNAUTHORIZED);
     }
 
     @Test
     void deleteRemovesEventAndMetadataAndTokenStopsResolving() {
-        Event e = draft("tok", "10001");
+        Event e = draft("tok", "01721");
         metadata.insert(new EventMetadata(e.getId(), "Tickets", "https://x.com", "url", new BigDecimal("1.00"), "text"));
 
         boolean ok = reviewService.delete(e.getId(), "tok");
@@ -101,7 +113,7 @@ class SubmitDeleteTest {
 
     @Test
     void deleteWithBadTokenIsRejected() {
-        Event e = draft("tok", "10001");
+        Event e = draft("tok", "01721");
         assertThat(reviewService.delete(e.getId(), "wrong")).isFalse();
         assertThat(events.findById(e.getId())).isPresent(); // not deleted
     }

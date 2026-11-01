@@ -13,7 +13,7 @@ See `docs/reference/sdd-frameworks-research.md`.
 
 ## When to use
 After the PRD is approved and REQs (TRD) exist. Produces the SDD as its own file, one folder per
-feature with stage-named files: `docs/<feature>/sdd.md` (alongside `prd.md`, `trd.md`, `ttp.md`).
+feature with stage-named files: `docs/<phase>-<feature>/sdd.md` (alongside `prd.md`, `trd.md`, `ttp.md`).
 
 ## Phase 0 — resolve unknowns before designing
 Before writing any design, list the open technical unknowns the REQs imply (a library choice, an

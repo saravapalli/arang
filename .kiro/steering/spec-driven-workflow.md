@@ -24,7 +24,7 @@ Each lifecycle stage is its own document with its own frontmatter and format —
 single `design.md`. This matches how Spec Kit / OpenSpec / BMAD all separate their artifacts, keeps
 sign-off and traceability per-stage clean, and avoids one file conflating requirements, design, and
 tests. Layout: **one folder per feature, stage-named files inside** —
-`docs/<feature>/{prd,trd,sdd,ttp}.md` (e.g. `docs/producer-intake/prd.md`, `…/trd.md`, `…/sdd.md`,
+`docs/<phase>-<feature>/{prd,trd,sdd,ttp}.md` (folder prefixed with its phase so the listing sorts in phase order: `p1-`, `p2-`, `p2.1-`, `p3-`, `p5-`) (e.g. `docs/p1-producer-intake/prd.md`, `…/trd.md`, `…/sdd.md`,
 `…/ttp.md`). The TTP stays lighter/optional for the prototype but is still its own file when written.
 
 ## Traceability (audit at every stage)

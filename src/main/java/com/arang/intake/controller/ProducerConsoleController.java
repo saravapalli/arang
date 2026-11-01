@@ -46,7 +46,7 @@ public class ProducerConsoleController {
     }
 
     /** The chat-style console page. */
-    @GetMapping("/")
+    @GetMapping("/console")
     public String console() {
         return "console";
     }

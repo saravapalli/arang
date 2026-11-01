@@ -24,10 +24,24 @@ public record ExtractedFields(
     Double startsAtConfidence,
     Double locationConfidence,
     Map<String, String> attributes,
-    String rawText
+    String rawText,
+    java.util.List<String> categories,
+    java.util.List<String> tags
 ) {
     public ExtractedFields {
         attributes = (attributes == null) ? Map.of() : Map.copyOf(attributes);
+        categories = (categories == null) ? java.util.List.of() : java.util.List.copyOf(categories);
+        tags = (tags == null) ? java.util.List.of() : java.util.List.copyOf(tags);
+    }
+
+    /** Backward-compatible constructor (pre-S-E callers/tests): no categories/tags. */
+    public ExtractedFields(boolean relevant, String irrelevantReason, String title,
+                           LocalDateTime startsAt, String location, String eventType,
+                           Double titleConfidence, Double startsAtConfidence,
+                           Double locationConfidence, Map<String, String> attributes, String rawText) {
+        this(relevant, irrelevantReason, title, startsAt, location, eventType,
+            titleConfidence, startsAtConfidence, locationConfidence, attributes, rawText,
+            java.util.List.of(), java.util.List.of());
     }
 
     /** Not an event / nothing understood. */
@@ -42,6 +56,6 @@ public record ExtractedFields(
 
     public boolean hasAnyField() {
         return title != null || startsAt != null || location != null || eventType != null
-            || !attributes.isEmpty();
+            || !attributes.isEmpty() || !categories.isEmpty() || !tags.isEmpty();
     }
 }

@@ -35,3 +35,18 @@ config/llm.properties
 e2e/node_modules/
 e2e/test-results/
 e2e/playwright-report/
+
+# Map spike — deps + build output
+spike/map/node_modules/
+spike/map/dist/
+
+# Generated SPA build (DD-P2-6 same-origin), produced by ./gradlew copySpa -PbuildSpa
+src/main/resources/static/
+
+# stable-app release artifacts
+.release/
+build-dev/
+
+# SPA (web/) deps and build output
+web/node_modules/
+web/dist/

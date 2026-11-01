@@ -10,7 +10,7 @@ function parseReviewHref(href) {
 
 // Create a fresh draft via the console and return its id+token.
 async function newDraft(page, message) {
-  await page.goto('/');
+  await page.goto('/console');
   await page.locator('#message').fill(message);
   await page.locator('#send').click();
   const href = await page.locator('a.reviewbtn').first().getAttribute('href');
@@ -24,13 +24,13 @@ test.describe('Review page — edit / publish / delete', () => {
     await page.goto(`/review/${id}?token=${token}`);
     await page.locator('#title').fill('Edited Jazz Night');
     await page.locator('#location').fill('Downtown Hall');
-    await page.locator('#postalCode').fill('10001');
+    await page.locator('#postalCode').fill('01721');
     await page.getByRole('button', { name: /save changes/i }).click();
 
     const e = await db.event(id);
     expect(e.title).toBe('Edited Jazz Night');
     expect(e.location).toBe('Downtown Hall');
-    expect(e.postal_code).toBe('10001');
+    expect(e.postal_code).toBe('01721');
   });
 
   test('publishing requires a postal code, then sets published + derives geo', async ({ page }) => {
@@ -42,16 +42,16 @@ test.describe('Review page — edit / publish / delete', () => {
     let e = await db.event(id);
     expect(e.status, 'no postal → still draft').toBe('draft');
 
-    // Add a known postal (10001 is in the bundled centroid set) → publish succeeds + geo derived.
+    // Add a known postal (01721 Ashland is in the bundled centroid set) → publish succeeds + geo derived.
     await page.goto(`/review/${id}?token=${token}`);
-    await page.locator('#postalCode').fill('10001');
+    await page.locator('#postalCode').fill('01721');
     await page.getByRole('button', { name: /save changes/i }).click();
     await page.goto(`/review/${id}?token=${token}`);
     await page.getByRole('button', { name: /submit|publish/i }).click();
 
     e = await db.event(id);
     expect(e.status).toBe('published');
-    expect(e.postal_code).toBe('10001');
+    expect(e.postal_code).toBe('01721');
     expect(e.latitude, 'latitude derived from postal centroid').not.toBeNull();
     expect(e.longitude, 'longitude derived from postal centroid').not.toBeNull();
   });

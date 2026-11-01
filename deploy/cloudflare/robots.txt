@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /add
+Disallow: /submit
+Disallow: /console
+Disallow: /review/
+Disallow: /api/
+Disallow: /webhook/
+Disallow: /media/
+
+Sitemap: https://YOUR-DOMAIN/sitemap.xml

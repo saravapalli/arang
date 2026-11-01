@@ -1,7 +1,7 @@
 # P1 Producer-Intake — SDD Diagrams (reference copy)
 
 > Illustrative Mermaid diagrams of the P1 design (ARANG-SDD-P1). **These now live canonically in
-> the SDD itself** (`docs/producer-intake/sdd.md` §4); this file is a standalone reference copy.
+> the SDD itself** (`docs/p1-producer-intake/sdd.md` §4); this file is a standalone reference copy.
 > The SDD is the source of truth — if they diverge, the SDD wins.
 
 ## A. ER diagram — the P1 schema (§2)

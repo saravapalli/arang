@@ -16,7 +16,7 @@ test.beforeAll(async () => {
 
 test.describe('Producer console — text intake', () => {
   test('typing an event creates a draft persisted with provenance + URL metadata', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/console');
     await expect(page.locator('h1')).toContainText('Arang Producer Console');
 
     const msg = 'Live jazz Friday 8pm at The Cellar, tickets https://example.com/jazz';
@@ -53,7 +53,7 @@ test.describe('Producer console — text intake', () => {
   });
 
   test('the review page renders the draft for a valid token', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/console');
     await page.locator('#message').fill('Open mic night https://example.com/mic');
     await page.locator('#send').click();
     const href = await page.locator('a.reviewbtn').first().getAttribute('href');
@@ -67,7 +67,7 @@ test.describe('Producer console — text intake', () => {
   });
 
   test('an invalid token is rejected (404)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/console');
     await page.locator('#message').fill('Something https://example.com/x');
     await page.locator('#send').click();
     const href = await page.locator('a.reviewbtn').first().getAttribute('href');

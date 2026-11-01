@@ -15,6 +15,11 @@ java {
     }
 }
 
+// scripts/dev.sh passes -PdevBuildDir=build-dev so dev compiles never touch build/ (used by older runs).
+if (project.hasProperty('devBuildDir')) {
+    layout.buildDirectory = layout.projectDirectory.dir(project.property('devBuildDir') as String)
+}
+
 repositories {
     mavenCentral()
 }
@@ -44,3 +49,37 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// ---- Same-origin SPA build (DD-P2-6) --------------------------------------
+// Builds the React SPA (web/) and copies its dist into src/main/resources/static so Spring Boot
+// serves the SPA and the /api endpoints from one origin (no CORS). Opt-in to keep normal backend
+// builds fast and Node-independent: run with -PbuildSpa. The node bin dir can be overridden with
+// -PnodeBin=/path/to/node/bin (defaults to the prebuilt /tmp/node20/bin used in this environment).
+def nodeBin = project.findProperty('nodeBin') ?: '/tmp/node20/bin'
+
+tasks.register('buildSpa', Exec) {
+    description = 'Build the React SPA (web/) with Vite.'
+    workingDir = file('web')
+    environment 'PATH', "${nodeBin}:${System.getenv('PATH')}"
+    // Prefer the local vite binary (node only — avoids a broken/partial npm, e.g. the /tmp prebuilt
+    // whose npm cli.js is missing, DD-P2-1). Only run an install when node_modules is absent, and
+    // try npm then a plain node-based install fallback.
+    commandLine 'sh', '-c',
+        'if [ ! -x node_modules/.bin/vite ]; then ' +
+        '  (npm install --no-audit --no-fund >/dev/null 2>&1) || ' +
+        '  { echo "npm unavailable/broken — install web/ deps with a working npm, then rerun"; exit 1; }; ' +
+        'fi; ' +
+        './node_modules/.bin/vite build'
+}
+
+tasks.register('copySpa', Copy) {
+    description = 'Copy the built SPA into static/ for same-origin serving. Run after buildSpa.'
+    dependsOn 'buildSpa'
+    from 'web/dist'
+    into 'src/main/resources/static'
+}
+// NOTE: copySpa/buildSpa are intentionally NOT wired into processResources or test — the SPA build
+// needs Node, which the backend build/test must not require. Produce the same-origin bundle with an
+// explicit step before running the server:
+//   ./gradlew copySpa -PbuildSpa -PnodeBin=/path/to/node/bin   (the flag is advisory only now)
+//   ./gradlew bootRun

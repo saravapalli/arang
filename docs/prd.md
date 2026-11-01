@@ -13,9 +13,9 @@ last_revised_date: 2026-10-12
 jira:
 multifeature: true
 related_docs:
-  - docs/producer-intake/prd.md (child PRD — P1, the build-first feature)
-  - docs/prd/consumer-discovery.md (child PRD — P2, planned)
-  - docs/prd/ingestion-framework.md (child PRD — P3, planned)
+  - docs/p1-producer-intake/prd.md (child PRD — P1, the build-first feature)
+  - docs/p2-consumer-discovery/prd.md (child PRD — P2, planned)
+  - docs/p3-ingestion-framework/prd.md (child PRD — P3, planned)
   - docs/reference/how-spec-driven-ai-works.md (methodology)
 origin: Resumed product-spec workflow; split into an initiative + child PRDs per right-sizing rule
 informed:
@@ -30,7 +30,7 @@ tags: [whatsapp, event-intake, ocr, discovery, spring-boot, initiative]
 > child feature PRDs under `docs/prd/`. This document holds the shared vision, product
 > shape, generality principles, schema intent, and the cross-feature priority ordering.
 > The buildable, right-sized specs live in the child PRDs — start with
-> `docs/producer-intake/prd.md` (P1).
+> `docs/p1-producer-intake/prd.md` (P1).
 >
 > Section structure follows the FT-1 PRD template. SERVICE BOUNDARY and VALIDATIONS ON
 > INCOMING DATA are intentional additions kept because Arang is a service with
@@ -65,7 +65,7 @@ The **intake source is data, not schema** (see `.kiro/steering/design-philosophy
 > mapping to a child PRD where the detailed, right-sized `UF-###`/`AC-###` flows live.
 > Tag legend: `[P1]` build-first · `[P2]` later · `[P3]` lowest priority · `[P4]` hardening (NFRs), after a working P1 · `[P5]` business & venue linking.
 
-### Epic 1 — Producer intake `[P1]` → `docs/producer-intake/prd.md`
+### Epic 1 — Producer intake `[P1]` → `docs/p1-producer-intake/prd.md`
 - As a submitter, I send an event over WhatsApp (text / flyer image / link) and get a confirmation echoing what was captured.
 - As the submitter, I open a private link to review, correct, submit (publish), or delete the event.
 - As a submitter, I can type an event into a web form instead of WhatsApp. `[P1 stretch]`
@@ -75,11 +75,13 @@ The **intake source is data, not schema** (see `.kiro/steering/design-philosophy
 ### Epic 2 — Conversational intake `[P2]` → (future child PRD)
 - As a submitter, when a field is missing Arang asks a follow-up question and merges my answer into the pending event. *(Requires conversation state.)*
 
-### Epic 3 — Consumer discovery & interests `[P2]` → `docs/prd/consumer-discovery.md`
+### Epic 3 — Consumer discovery & interests `[P2]` → `docs/p2-consumer-discovery/prd.md`
 - As a consumer, I ask "what's on this weekend?" and get events filtered to my interests (category/location).
 - As a consumer, I tell Arang what I like and it personalizes results.
+*(P2 also **owns event categorization** — extending the LLM enrichment to assign categories +
+seeding the vocabulary — since category filtering depends on it and P1 is already built/approved.)*
 
-### Epic 4 — Multi-source ingestion & provenance `[P3]` → `docs/prd/ingestion-framework.md`
+### Epic 4 — Multi-source ingestion & provenance `[P3]` → `docs/p3-ingestion-framework/prd.md`
 - As an operator, I configure a source connector (newspaper listings, platform API, PDF feed, …) and Arang periodically ingests published items into event records attributed to that source.
 - As an external integrator, I POST structured events to Arang's inbound API and they are stored, attributed to my client.
 - As an operator/consumer, I can tell where an event came from (user / ingestion source / api client, and when) and how confident the extraction was.
@@ -99,7 +101,7 @@ The **intake source is data, not schema** (see `.kiro/steering/design-philosophy
   P1 deferrals OQ-P1-3 (anti-abuse) and OQ-P1-7 (real authn/authz).
 *(Detailed NFR targets + `AC-###` are specified when this child PRD is drafted.)*
 
-### Epic 6 — Business & venue linking `[P5]` → `docs/business-linking/prd.md`
+### Epic 6 — Business & venue linking `[P5]` → `docs/p5-business-linking/prd.md`
 > The `business`/`business_metadata` tables and the nullable `event.business_id` FK already exist
 > (created in the P1 SDD per the generality steering) but no phase populates them. This epic gives
 > that entity a feature home: derive/create a business from a submission, link events to it, dedupe
@@ -236,7 +238,7 @@ Confirm the cross-feature framing (per-feature sign-off happens in each child PR
 - [ ] Initiative open question D5 (required fields) can be settled with the schema.
 
 ## 14. ACCEPTANCE CRITERIA (initiative-level)
-> Detailed, testable `AC-###` criteria live in each child PRD (e.g. `docs/producer-intake/prd.md`
+> Detailed, testable `AC-###` criteria live in each child PRD (e.g. `docs/p1-producer-intake/prd.md`
 > defines AC-001…AC-022). At the initiative level the success criteria are coarse-grained
 > and measured by child-PRD completion:
 - **IC-1 (Producer):** `producer-intake` (P1) is approved, built, and its ACs pass — an event can be submitted, reviewed, published, and persisted.
@@ -250,14 +252,14 @@ Confirm the cross-feature framing (per-feature sign-off happens in each child PR
 
 ## 15. VERSION HISTORY
 - **v0.10 (2026-10-26):** Added **Epic 6 / P5 — Business & venue linking** (child PRD
-  `docs/business-linking/prd.md`, status draft) + **IC-6**; updated the tag legend and the
+  `docs/p5-business-linking/prd.md`, status draft) + **IC-6**; updated the tag legend and the
   epic→child-PRD coverage line. Gives the already-modeled `business`/`business_metadata` tables
   and the nullable `event.business_id` FK a feature home (derive/link/dedupe a business from a
   submission) — a gap surfaced when E2E showed those tables never populate. No change to P1–P4
   scope. Business-owner accounts/auth and consumer venue pages remain out (auth work + P2).
 - **v0.9 (2026-10-14):** Added the **user identity vs. role** model to Concepts — `user` is identity-only; roles (producer/consumer/operator/…) in a many-to-many `user_role` table (role = data, not schema; supports multi-role users and future types without migration; the authz gate). Recorded **authentication & authorization as a deferred, platform-wide concept** — interim control is network restriction; the `edit_token` is a capability link, not a security boundary. (Mirrors P1 v0.5 and the design-philosophy steering update.)
 - **v0.8 (2026-10-13):** Applied the richer reference PRD format at initiative level: USER STORIES regrouped into **epics by feature/priority** (Epic 1–4) each mapping to a child PRD; OPEN QUESTIONS converted to a status table + resolved-decisions log; sections 13–14 made initiative-level (cross-feature sign-off; coarse **IC-1…IC-4** success criteria that delegate detailed `AC-###` to child PRDs, removing the now-stale duplicated P1 ACs). No scope change.
-- **v0.7 (2026-10-12):** **Reframed this document as the Initiative overview** and split the buildable scope into child PRDs under `docs/prd/` (producer-intake P1, consumer-discovery P2 stub, ingestion-framework P3 stub), per the spec-driven right-sizing rule — driven by an independent `spec-reviewer` audit of v0.6. **Fixed audit defects:** DB-engine contradiction (now MySQL, no Postgres/undecided language) and build-tool contradiction (Gradle); removed resolved OQ-Engine/OQ-Build; set `type: Initiative`, `multifeature: true`. The first right-sized, fully-traceable spec now lives in `docs/producer-intake/prd.md` (UF/AC coverage closed, AC1↔V4 resolved, webhook idempotency/verification + media-fetch-failure added).
+- **v0.7 (2026-10-12):** **Reframed this document as the Initiative overview** and split the buildable scope into child PRDs under `docs/prd/` (producer-intake P1, consumer-discovery P2 stub, ingestion-framework P3 stub), per the spec-driven right-sizing rule — driven by an independent `spec-reviewer` audit of v0.6. **Fixed audit defects:** DB-engine contradiction (now MySQL, no Postgres/undecided language) and build-tool contradiction (Gradle); removed resolved OQ-Engine/OQ-Build; set `type: Initiative`, `multifeature: true`. The first right-sized, fully-traceable spec now lives in `docs/p1-producer-intake/prd.md` (UF/AC coverage closed, AC1↔V4 resolved, webhook idempotency/verification + media-fetch-failure added).
 - **v0.6 (2026-10-12):** Added an explicit **priority ordering** (user decision): P1 = producer loop (WhatsApp one-shot intake → edit UI → direct-entry web form); P2 = conversational (stateful, follow-up-question) intake + consumer discovery/interests; P3 (lowest) = the multi-source ingestion framework. Added **direct-entry UI** (U5b) as a second P1 producer channel and **conversational intake** (U5c) as a distinct P2 capability requiring conversation state. Reorganized Scope into P1/P2/P3.
 - **v0.5 (2026-10-12):** Expanded automated ingestion into a general **multi-source ingestion framework**: pluggable **connectors** by source *shape* (inbound push API, outbound pull API, structured web, unstructured web/JS calendars, documents/PDF, images, compliance-gated messaging/social) feeding one shared **acquire→normalize→extract→dedupe→store** pipeline. Added **G7 inbound events API** (recommended as the first/cheapest connector), U10, and broadened provenance to include an `api_client` origin. Flagged messaging/social (WhatsApp groups, FB, IG) as compliance-gated and not assumed scrapable. De-duplication elevated to a first-class concern. Updated Scope, Goals, User Stories, Concepts (connector+pipeline), Open Questions (OQ-Ingest-1..4). Steering file updated.
 - **v0.4 (2026-10-12):** Added **automated local-source ingestion** (newspapers/town bulletins/listings → OCR/parse → events) as a later-slice, good-to-have capability, spec'd in the PRD and covered by the schema now. Generalized event **provenance/origin** to be either a human submitter or an **`ingestion_source`** entity (`origin_type` + appropriate FK), so pipeline events coexist with WhatsApp submissions without overloading `submitted_by`. Updated Context, Goals (G6), User Stories (U8/U9), Scope (incl. ToS/legal note), Service Boundary, Concepts, AC6, and Open Questions (OQ-Ingest-1..3). Reinforced "intake source is data, not schema."
