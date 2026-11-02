@@ -3,19 +3,20 @@ title: Arang — Town Entry & Coverage (P2.1)
 type: PRD
 artifact_id: ARANG-PRD-P2-1
 parent: ARANG-INIT-001
-status: approved
-version: 1.0
+status: draft
+version: 1.2
 driver: (you)
 approver: (you)
 approver_role: product owner / driver
 assigned_date: 2026-10-31
 first_draft_target: 2026-10-31
-last_revised_date: 2026-10-31
+last_revised_date: 2026-11-01
 approved_date: 2026-10-31
 review_provenance: first draft (Fast path), NO independent spec-reviewer gate and NO collaborative drill run. Driver approved directly on 2026-10-31 and asked to proceed; the recommended defaults for OQ-P2.1-1..3 were adopted by that approval (see §12, §15).
 jira:
 multifeature: false
 related_docs:
+  - ~/Downloads/Arangly_Enhancement_Checklist.md (2026-11-01 site review — source of the v1.1 additions; items outside P2.1 went to docs/p2.2-event-detail-trust/prd.md)
   - docs/prd.md (initiative overview — Epic 3 / P2; this is a follow-on to P2, phase tag P2.1)
   - docs/p2-consumer-discovery/prd.md (P2 — approved + built; this PRD extends its "choose a location" entry point, UF-P2-1)
   - docs/p2-consumer-discovery/sdd.md (DD-P2-3 deferred real town geocoding; DD-P2-9 two-screen landing flow; DD-P2-11 "any town, any size" positioning — all three are inputs here)
@@ -99,13 +100,20 @@ Tag legend: `[core]` P2.1 must-have · `[stretch]` if cheap.
 - **UF-P2.1-4 (coming soon + notify me)** `[core]` — As a visitor whose town is real but not live,
   I am told Arang is coming soon to it and can leave my email to be told when it is live.
 - **UF-P2.1-5 (live town, nothing on)** `[core]` — As a visitor in a live town with no events in the
-  window, I see an honest "nothing on" state — distinct from "coming soon" — not a dead end.
+  window, I see an honest "nothing on" state — distinct from "coming soon" — with nearby live towns
+  that do have events and a way to submit an event, so it is not a dead end. *(v1.1: nearby towns and
+  submit option added from the site review.)*
+
+### Group A2 — Coming back
+- **UF-P2.1-7 (remember my town)** `[core]` — As a returning visitor, my last chosen town is remembered
+  on this browser, so I do not have to choose it again, and I can still switch town. No account is
+  needed. *(v1.1, from the site review.)*
 
 ### Group C — Being found
 - **UF-P2.1-6 (search engine discovery)** `[core]` — As a search engine crawler, I can read a sitemap
   of live-town pages and a robots policy that excludes write/admin routes.
 
-*Coverage: every UF has ≥1 AC in §14; every AC traces to a UF. Deferred items (sending
+*Coverage: every UF has ≥1 AC in §14; every AC traces to a UF (v1.1: 17 ACs, 7 UFs). Deferred items (sending
 notification emails, sharing, accounts) appear only in §5 "Out of scope".*
 
 ## 5. SCOPE
@@ -118,6 +126,10 @@ notification emails, sharing, accounts) appear only in §5 "Out of scope".*
 - Live-town-with-no-events empty state (UF-P2.1-5).
 - Sitemap and robots policy (UF-P2.1-6), with the production domain supplied by configuration.
 - Maintenance page asset (already designed) — exists as a static page only.
+- *(v1.1)* Remembering the last chosen town on the browser (UF-P2.1-7).
+- *(v1.1)* Town pages carry their own page title, canonical URL, and descriptive metadata, and the
+  product name shown to users is consistently **Arangly**.
+- *(v1.1)* Nearby-towns suggestions and a "submit an event" link on the nothing-on state.
 
 **Out of scope (explicit):**
 - **Sending any email** (the "we'll tell you when it's live" notification). P2.1 only *captures and
@@ -130,7 +142,7 @@ notification emails, sharing, accounts) appear only in §5 "Out of scope".*
 - Automatic switching of the app into the maintenance page during releases.
 - Full security hardening of the public write endpoint (rate limits, bot defense) — the baseline in
   §7 applies; the rest is P4.
-- Brand/name decision ("Arang" vs "Arangly") — recorded as a decision, not a requirement here.
+- *(v1.1)* The brand-name decision itself is made: **Arangly** (see §15). Only its consistent use on P2.1 screens is a requirement here (AC-P2.1-17).
 
 ## 6. SERVICE BOUNDARY
 - **Owns (P2.1):** town resolution (name/ZIP → place), the coverage definition and its data, the
@@ -180,6 +192,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   fallback of the seeded towns is acceptable) but must not claim to save an email.
 - **Accessibility:** the search, suggestions, and form are keyboard-operable and have labels; error
   and success messages are announced (`role=alert`/`status`).
+- **Brand:** the user-facing product name is **Arangly** (logo, page titles, accessible labels, copy). *(v1.1)*
 - **Region:** coverage claims are limited to the supported region (New England ZIP data is what is
   actually present today).
 - **Environments:** developed and tested on dev (:8081, `arang_dev`); prod (:8080) only by explicit
@@ -196,8 +209,11 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 - **Coming-soon town:** a resolvable place that is not live.
 - **Demand signal:** a recorded wish — "this person wants Arang in this town" — consisting of an
   email, a town reference, a timestamp, and the consent wording that was shown.
-- **Town slug:** the stable URL form of a place, `<town>-<state>` in lowercase with hyphens (e.g.
-  `ashland-ma`), unique across states (a "Springfield" exists in several).
+- **Town slug:** the stable name of a place inside its URL, `<town>-<state>` in lowercase with hyphens
+  (e.g. `ashland-ma`), unique across states (a "Springfield" exists in several).
+- **Town URL:** `/towns/<town slug>` (e.g. `/towns/ashland-ma`). The path names the town. Query
+  parameters carry only view options (time window, category) and are not part of the canonical URL.
+  *(v1.2, decision 2026-11-01.)*
 - **Empty town:** a live town with zero published events in the current window — distinct from a
   coming-soon town.
 
@@ -215,6 +231,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 - **A6 [ASSUMPTION]:** The demand-capture endpoint is public and unauthenticated (like the SPA);
   abuse is controlled by validation and a baseline throttle, not by accounts.
 - **A7 [ASSUMPTION]:** Sending notification email is a later phase, so P2.1 needs no email provider.
+- **A9 [ASSUMPTION — from the site review]:** the production public domain is `https://arangly.com`, supplied to the sitemap and canonical URLs by configuration (never hard-coded in a page). *(v1.1)*
 - **A8 [ASSUMPTION]:** The sitemap and robots content is generated from the live-town data so it
   cannot drift from what is actually live.
 
@@ -224,6 +241,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 | OQ-P2.1-1 | **Where does a demand signal live?** Reuse existing generic tables (the platform's per-entity metadata and user mechanism: the email as a lightweight user, the town as metadata) or add a dedicated table? | RESOLVED (2026-10-31, by approval — recommended default adopted; reopen if wrong) | Reuse the existing generic mechanisms if they can express email + town + timestamp + consent without a migration; otherwise one small dedicated table. The SDD decides the mechanics once you confirm the intent ("a demand signal is data"). Needs your call because it touches the long-lived schema. | driver |
 | OQ-P2.1-2 | **What makes a town "live", and how big is the supported region?** (a) a curated flag on the place; (b) has at least one published event; (c) every resolvable place counts as live. And: is the region New England only for now? | RESOLVED (2026-10-31, by approval — recommended default adopted; reopen if wrong) | (a) a curated flag as data, starting with the current ~28 towns; New England only. (b) would flip towns between live and coming-soon as events appear, which is confusing; (c) would break the honesty goal. | driver |
 | OQ-P2.1-3 | **Email privacy and abuse policy:** what consent wording, how long to keep an address, how can someone ask to be removed, and what baseline throttle applies? | RESOLVED (2026-10-31, by approval — recommended default adopted; reopen if wrong) | Show a one-line consent ("We'll only email you about Arang in <town>"); keep until the town goes live and a notification is sent or 24 months, whichever is first; removal by email request for now; throttle per client (e.g. 5 requests/min) with a 429 response. | driver |
+| OQ-P2.1-4 | **Crawlable content:** town pages are rendered in the browser today, so a crawler that does not run scripts sees an empty page. Prerender the live-town pages at release time, or render them on the server per request? *(v1.1)* | OPEN | Prerender at release (simpler, no new runtime); the SDD confirms feasibility. Needs a product nod because it ties town data to the release process. | driver |
 
 ## 13. PRE-SIGN-OFF VERIFICATION
 *(Driver approved on 2026-10-31. Boxes ticked below are satisfied by the document; the three left unticked are carried into the SDD as explicit tasks.)*
@@ -249,7 +267,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   available. Coordinates are not stored (V6).
 - **AC-P2.1-04** ⟵ UF-P2.1-2: If location permission is denied, times out, or is unavailable, the
   visitor sees a clear message and the search input remains usable. No error page appears.
-- **AC-P2.1-05** ⟵ UF-P2.1-3: Opening a live town's URL (e.g. `/ashland-ma`) in a fresh browser
+- **AC-P2.1-05** ⟵ UF-P2.1-3: Opening a live town's URL (e.g. `/towns/ashland-ma`) in a fresh browser
   shows that town's discovery screen directly, with no landing step. Using "change town" from there
   returns to the landing screen.
 - **AC-P2.1-06** ⟵ UF-P2.1-3: Opening a malformed or unknown town URL shows the landing screen (not a
@@ -267,13 +285,29 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   the same email for the same place again reports success and creates no duplicate (V5).
 - **AC-P2.1-10** ⟵ UF-P2.1-4: The waitlist endpoint exceeds its throttle with a 429 response and the
   UI shows a "try again shortly" message. No response ever reveals whether an email was already stored.
-- **AC-P2.1-11** ⟵ UF-P2.1-5: A live town with no published events in the window shows an "nothing on
+- **AC-P2.1-11** ⟵ UF-P2.1-5: A live town with no published events in the window shows a "nothing on
   this week" state with a way to widen the window or change town; it does not show "coming soon".
+  *(v1.1)* The state also lists any other live town within the near-me limit that has at least one
+  published event in the window (up to 3, nearest first, omitted if none), and a link to submit an
+  event.
 - **AC-P2.1-12** ⟵ UF-P2.1-6: `/sitemap.xml` lists the landing page and exactly the live-town URLs,
   each with the production domain from configuration; it lists none of `/add`, `/submit`, `/console`,
   `/review/…`, `/api/…`, `/webhook/…`, `/media/…`. When a town is marked live or not live, the next
   sitemap fetch reflects it.
 - **AC-P2.1-13** ⟵ UF-P2.1-6: `/robots.txt` disallows those same routes and names the sitemap URL.
+- **AC-P2.1-14** ⟵ UF-P2.1-4 *(v1.1, closes the TRD privacy gap)*: A stored email address never appears
+  in a URL, the sitemap, any public response, or an application log line at INFO level or above.
+- **AC-P2.1-15** ⟵ UF-P2.1-6 *(v1.1)*: Each live-town page has a unique page title naming the town, a
+  canonical URL on the configured public domain, and a description naming the town. The landing page
+  has its own title, canonical URL, and description. The page content that carries the town name and
+  events is available to a crawler that does not run scripts (verification method — prerendering or
+  server rendering — is an SDD choice; open point OQ-P2.1-4).
+- **AC-P2.1-16** ⟵ UF-P2.1-7 *(v1.1)*: After a visitor chooses a live town, returning to the site root in
+  the same browser opens that town's page directly; the visitor can still change town. Clearing the
+  browser's site data resets this. Nothing about the choice is sent to or stored on the server.
+- **AC-P2.1-17** ⟵ UF-P2.1-3 *(v1.1)*: On the landing, town, coming-soon, and nothing-on screens, no
+  visible text, page title, or accessible label uses the name "Arang" without "ly"; the product name
+  reads "Arangly".
 
 ## 15. VERSION HISTORY
 - **v0.1 (2026-10-31) — DRAFT (Fast path).** First draft. Origin: after P2 shipped, the next-steps
@@ -292,3 +326,18 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   notified or 24 months; removal on email request; baseline per-client throttle). The recommended
   defaults were assumed, not separately stated — reopen any of them in a revision if wrong. Three
   pre-sign-off items are carried into the SDD (data license, landing-UI reconciliation, P2 doc updates).
+- **v1.1 (2026-11-01) — DRAFT (delta pending driver read-through).** Folded in the items from the
+  2026-11-01 site-review checklist that fit this feature's single intention: remember my town (UF-7,
+  AC-16), nearby towns and a submit link on the nothing-on state (UF-5, AC-11), crawlable canonical
+  page metadata (AC-15), consistent "Arangly" naming (AC-17, §9), and the production domain assumption
+  `arangly.com` (A9). Added AC-14 to close the TRD's privacy-without-an-AC gap. New open question
+  OQ-P2.1-4 (prerender vs server render). The remaining checklist items were deliberately NOT added here
+  to keep one intention; they moved to the new P2.2 PRD (`docs/p2.2-event-detail-trust/prd.md`) or to later phases.
+  Decision recorded: **product name = Arangly.** v1.0's approval covers the v1.0 content only.
+- **v1.2 (2026-11-01) — DRAFT.** Decision (driver): the town URL form is **`/towns/<town slug>`**, a path
+  and not a query parameter. Reasons: a path names a resource and a query parameter changes the view of
+  it, search engines treat paths as separate pages, links stay readable, and the `/towns/` prefix
+  removes any name clash with other routes (`/add`, `/console`, future pages), so no slug naming rule
+  is needed. Filters (time window, category) stay as query parameters and are not in the canonical
+  URL. Old slugs of renamed or merged towns must redirect permanently (SDD task). Updated the Concepts
+  entry and AC-P2.1-05.

@@ -133,13 +133,16 @@ export function windowFor(presetId) {
   return null
 }
 
-/** Build a Google Maps link for an event (coords preferred, else the place/address text). */
+/** Build a Google Maps link for an event. The street address/venue text wins: stored coordinates are only a ZIP centroid (approximate), so linking to them sends people to the wrong spot. */
 export function googleMapsUrl(ev) {
+  const text = (ev.place || '').trim()
+  if (text) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`
+  }
   if (ev.lat != null && ev.lng != null) {
     return `https://www.google.com/maps/search/?api=1&query=${ev.lat},${ev.lng}`
   }
-  const q = encodeURIComponent(ev.place || ev.title || '')
-  return `https://www.google.com/maps/search/?api=1&query=${q}`
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.title || '')}`
 }
 
 /**
