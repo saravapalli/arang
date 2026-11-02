@@ -4,7 +4,7 @@ type: PRD
 artifact_id: ARANG-PRD-P2-1
 parent: ARANG-INIT-001
 status: draft
-version: 1.2
+version: 1.3
 driver: (you)
 approver: (you)
 approver_role: product owner / driver
@@ -113,7 +113,7 @@ Tag legend: `[core]` P2.1 must-have · `[stretch]` if cheap.
 - **UF-P2.1-6 (search engine discovery)** `[core]` — As a search engine crawler, I can read a sitemap
   of live-town pages and a robots policy that excludes write/admin routes.
 
-*Coverage: every UF has ≥1 AC in §14; every AC traces to a UF (v1.1: 17 ACs, 7 UFs). Deferred items (sending
+*Coverage: every UF has ≥1 AC in §14; every AC traces to a UF (v1.3: 19 ACs, 7 UFs). Deferred items (sending
 notification emails, sharing, accounts) appear only in §5 "Out of scope".*
 
 ## 5. SCOPE
@@ -190,6 +190,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   OQ-P2.1-3 before sign-off.
 - **Resilience:** the landing must remain usable if the server is unreachable (search over a built-in
   fallback of the seeded towns is acceptable) but must not claim to save an email.
+- **Place data stays on our side:** what a visitor types into the town search is not sent to any third-party service while they type or when they submit. Reasons: privacy, and the usage rules of free public geocoding services (which forbid type-ahead use). The place data MUST come from a source whose license allows our use, with the credit that license requires shown to visitors. *(v1.3)*
 - **Accessibility:** the search, suggestions, and form are keyboard-operable and have labels; error
   and success messages are announced (`role=alert`/`status`).
 - **Brand:** the user-facing product name is **Arangly** (logo, page titles, accessible labels, copy). *(v1.1)*
@@ -241,7 +242,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 | OQ-P2.1-1 | **Where does a demand signal live?** Reuse existing generic tables (the platform's per-entity metadata and user mechanism: the email as a lightweight user, the town as metadata) or add a dedicated table? | RESOLVED (2026-10-31, by approval — recommended default adopted; reopen if wrong) | Reuse the existing generic mechanisms if they can express email + town + timestamp + consent without a migration; otherwise one small dedicated table. The SDD decides the mechanics once you confirm the intent ("a demand signal is data"). Needs your call because it touches the long-lived schema. | driver |
 | OQ-P2.1-2 | **What makes a town "live", and how big is the supported region?** (a) a curated flag on the place; (b) has at least one published event; (c) every resolvable place counts as live. And: is the region New England only for now? | RESOLVED (2026-10-31, by approval — recommended default adopted; reopen if wrong) | (a) a curated flag as data, starting with the current ~28 towns; New England only. (b) would flip towns between live and coming-soon as events appear, which is confusing; (c) would break the honesty goal. | driver |
 | OQ-P2.1-3 | **Email privacy and abuse policy:** what consent wording, how long to keep an address, how can someone ask to be removed, and what baseline throttle applies? | RESOLVED (2026-10-31, by approval — recommended default adopted; reopen if wrong) | Show a one-line consent ("We'll only email you about Arang in <town>"); keep until the town goes live and a notification is sent or 24 months, whichever is first; removal by email request for now; throttle per client (e.g. 5 requests/min) with a 429 response. | driver |
-| OQ-P2.1-4 | **Crawlable content:** town pages are rendered in the browser today, so a crawler that does not run scripts sees an empty page. Prerender the live-town pages at release time, or render them on the server per request? *(v1.1)* | OPEN | Prerender at release (simpler, no new runtime); the SDD confirms feasibility. Needs a product nod because it ties town data to the release process. | driver |
+| OQ-P2.1-4 | **Crawlable content:** town pages are rendered in the browser today, so a crawler that does not run scripts sees an empty page. Prerender the live-town pages at release time, or render them on the server per request? *(v1.1)* | RESOLVED (2026-11-01, driver confirmed SDD DD-P2.1-3: the server injects town content into the page at request time) | Prerender at release (simpler, no new runtime); the SDD confirms feasibility. Needs a product nod because it ties town data to the release process. | driver |
 
 ## 13. PRE-SIGN-OFF VERIFICATION
 *(Driver approved on 2026-10-31. Boxes ticked below are satisfied by the document; the three left unticked are carried into the SDD as explicit tasks.)*
@@ -308,8 +309,17 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 - **AC-P2.1-17** ⟵ UF-P2.1-3 *(v1.1)*: On the landing, town, coming-soon, and nothing-on screens, no
   visible text, page title, or accessible label uses the name "Arang" without "ly"; the product name
   reads "Arangly".
+- **AC-P2.1-18** ⟵ UF-P2.1-1 *(v1.3, resilience)*: When the place data used for town search is missing or
+  unusable, the site still starts and every other page works. Town search shows a clear
+  "search is unavailable right now" message and the landing offers the live towns that are built into the
+  page. The service health report states that place data is unavailable.
+- **AC-P2.1-19** ⟵ UF-P2.1-1 *(v1.3, credit and data handling)*: The credit that the place-data license
+  requires is visible on the landing page (for example in its footer). Text typed into the town search is
+  never sent to a third-party service; this is checked by watching the network requests made while typing.
+  The health report shows the date of the place data in use.
 
 ## 15. VERSION HISTORY
+
 - **v0.1 (2026-10-31) — DRAFT (Fast path).** First draft. Origin: after P2 shipped, the next-steps
   review found (a) the landing's hard-coded town list contradicts "any town, any size", (b) towns
   have no URLs, (c) the new coming-soon email capture has no backend, (d) the sitemap can only list
@@ -341,3 +351,105 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   is needed. Filters (time window, category) stay as query parameters and are not in the canonical
   URL. Old slugs of renamed or merged towns must redirect permanently (SDD task). Updated the Concepts
   entry and AC-P2.1-05.
+- **v1.3 (2026-11-01) — DRAFT.** Added the product-level facts about place data that came out of the
+  geocoding discussion: a constraint (place data stays on our side, license-compliant, credited), AC-P2.1-18
+  (resilience when place data is unavailable) and AC-P2.1-19 (data credit shown, no third-party lookups
+  while typing, data date in the health report). The implementation approach was deliberately NOT put into
+  the requirements; it is kept as a non-binding hand-off note in "Appendix — Notes for the SDD" below so
+  that the information is not lost. Closes the gap that the Resilience constraint had no acceptance criterion.
+
+---
+
+## Appendix — Notes for the SDD (NON-BINDING hand-off; not requirements)
+> **Why this is here:** these notes capture a design discussion held on 2026-11-01 so it is not lost.
+> They are **recommendations for the SDD to confirm or change**. They are not requirements and they do
+> not change any acceptance criterion. If the SDD chooses differently, the PRD does not need to change.
+
+**Context.** The town search needs place names and points. Public free geocoding (OSM Nominatim) cannot be
+used for type-ahead or for listing all towns — its usage policy forbids both, and it allows only 1 request
+per second per application. So the place data must be local.
+
+**Recommended approach (to confirm in the SDD):**
+1. **Source data:** an OpenStreetMap extract for the supported region (for example Massachusetts or New
+   England from Geofabrik), plus the existing ZIP-centroid file. License: ODbL — attribution is required;
+   share-alike duties for a published derived database are **not yet confirmed**. Read the license first.
+2. **Offline build:** a script (laptop or CI, never the API server) downloads the extract and keeps only
+   what is needed — for P2.1: places (towns, villages, neighborhoods) with state, ZIPs, and point. It writes
+   a **SQLite file** (a GeoPackage is a ready-made SQLite-based alternative) with a full-text table for
+   prefix search and an R-tree for nearest-point queries. The script **validates** the result (row counts,
+   sample lookups such as "Ashland") and refuses to publish a bad file. The file carries a metadata table
+   (OSM data date, schema version, license text) and a dated name such as `geo-2026-11-01.sqlite`.
+3. **Publish and deploy:** the script uploads the file to object storage (S3). A deploy step — container
+   start script or image build, not application code — places it on local disk. Several servers each hold
+   their own copy; the file is read-only, so no sharing or sync is needed. Replace the file as a whole,
+   never in place.
+4. **Application start-up (the only logic in the API server):** read the file path from configuration, open
+   the file **read-only**, check the metadata schema version, expose the data date in the health report. The
+   app never downloads, converts, or writes to the file. If the file is missing or the version is wrong, the
+   app starts anyway and degrades as AC-P2.1-18 describes.
+5. **Writes go elsewhere:** any point computed for an event is stored in the main database (MySQL), not in
+   the SQLite file.
+
+### How the SQLite file is populated (step by step; NON-BINDING)
+**Who and when.** A developer runs the build script by hand for the first file. Later, a scheduled job
+(for example monthly, or on demand when a new region is added) can run it. It runs offline, on a laptop or in
+CI. **It never runs inside the API server.** Its output is a file, not a database change.
+
+**Inputs.**
+- An OSM extract (`.osm.pbf`) for the supported region from a public mirror such as Geofabrik. P2.1 can start
+  with Massachusetts. Add other New England states when coverage grows.
+- The existing ZIP-centroid file (`geo/zip-centroids.csv`).
+- The list of live towns, if the build should mark them (the live flag itself is data in the main database,
+  per OQ-P2.1-2, so the SQLite file does not need to own it).
+
+**Steps.**
+1. **Download** the extract. Record the source address, the download date, and a checksum.
+2. **Filter** to the features needed, using an OSM tool (osmium or pyosmium). For P2.1: places (towns,
+   villages, hamlets, neighborhoods) and town boundaries. For P2.2 add: addresses (house number, street, ZIP)
+   and named venues (places of worship, libraries, community centres, halls, parks). The exact OSM tags are
+   to be confirmed in the SDD against real data.
+3. **Normalize.** Make a lowercase, accent-free search name. Set the state code. Attach ZIPs to places.
+   Create the town slug `<town>-<state>` and make sure every slug is unique. Remove duplicates.
+4. **Write the tables** into a new SQLite file. Expected shape (names are illustrative, the SDD decides):
+   `place` (id, OSM id, name, search name, type, state, slug, latitude, longitude), `place_zip` (place, ZIP),
+   `zip` (ZIP, latitude, longitude, state), a full-text index on place names for prefix search, an R-tree index
+   for nearest-point queries, and a `meta` table (OSM data date, build date, schema version, license text,
+   source checksum). P2.2 adds `address`, `venue`, and their full-text indexes.
+5. **Validate. Stop and publish nothing if any check fails.** Checks: row counts above a set minimum; every
+   one of the 28 current seeded towns resolves to the right state and ZIP; slugs are unique; every point
+   lies inside the supported region; no empty names; a prefix search for "ash" returns Ashland; (P2.2) a known
+   address such as 117 Waverly St, Ashland resolves to a point near the temple; the file opens read-only;
+   the schema version is set.
+6. **Finalize.** Compact the file, mark it read-only, name it `geo-YYYY-MM-DD.sqlite`, and compute its checksum.
+7. **Publish.** Upload the file to object storage (S3). Keep the last few versions. Update a small manifest
+   file that names the current version and its checksum.
+8. **Deploy.** A deploy step (container start script or image build, not application code) reads the manifest,
+   copies the named file to local disk, and checks the checksum. The app then reads its path from
+   configuration. A restart picks up a new file.
+9. **Roll back** by pointing the manifest at the previous version and restarting.
+
+**Local development.** The same script writes the file into a git-ignored folder (for example `data/geo/`).
+The app config points to it. Dev and AWS therefore use identical files.
+
+**Refresh rhythm.** Place names change slowly. Monthly or on demand is enough. Address and venue data change
+faster, so P2.2 may refresh more often.
+
+**What must never happen.** The API server must not download OSM data, build tables, or write to the file.
+The server's only duties are: open it read-only, check the schema version, report the data date, and degrade
+as AC-P2.1-18 describes if the file is missing or wrong.
+
+**Open details for the SDD:** the supported region at launch, the exact OSM tags, the full-text tokenizer
+settings (prefix search, accent folding), the actual file size, where the manifest lives, and who owns the
+refresh job.
+
+**Tasks this implies for the SDD:** (a) the build-and-validate script with its README; (b) the thin read-only
+reader and its health/degraded behavior; (c) the deploy step that places the file. **Checks to run first:**
+the Java SQLite driver includes full-text and R-tree support; the actual size of the extract; OSM coverage
+for real local places (for example the Sri Lakshmi Temple, 117 Waverly St, Ashland); the ODbL duties.
+
+**Limits to remember:** matching logic is ours to write (street-type variants, ZIP handling); it will be weaker
+on messy flyer text than a full geocoder such as a self-hosted Nominatim; coverage depends on OSM.
+
+**Alternatives noted:** self-hosted Nominatim (better address search, needs PostgreSQL/PostGIS and several GB
+of disk and RAM); a paid geocoding service (simple, ongoing cost and its own storage rules).
+- **v1.3a (2026-11-01):** Marked OQ-P2.1-4 resolved (driver confirmed the SDD's server-injected page shell). No requirement changed.

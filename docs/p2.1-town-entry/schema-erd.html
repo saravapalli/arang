@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arangly — Database schema (ER diagram) after P2.1</title>
+<style>
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #20243b; background: #f5f3ed; }
+  header { padding: 24px 32px 8px; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  p.sub { margin: 0; color: #5d6075; font-size: 14px; max-width: 900px; line-height: 1.5; }
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; padding: 14px 32px; font-size: 13px; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .swatch { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #20243b55; }
+  .new { background: #ffdb66; }
+  .old { background: #ffffff; }
+  .line-solid { width: 28px; border-top: 2px solid #20243b; }
+  .line-dotted { width: 28px; border-top: 2px dotted #20243b; }
+  main { padding: 0 32px 40px; overflow: auto; }
+  .card { background: #fff; border: 1px solid #e3e0d6; border-radius: 12px; padding: 16px; }
+  .card svg { max-width: 100%; height: auto; }
+  footer { padding: 0 32px 28px; font-size: 12px; color: #6e716d; max-width: 900px; line-height: 1.5; }
+  #error { display: none; margin: 12px 32px; padding: 12px; background: #fde8e4; border: 1px solid #ff694a; border-radius: 8px; font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Arangly database schema after P2.1</h1>
+  <p class="sub">MySQL tables with key columns only. The three yellow tables and the <code>user.email</code> column are new in the P2.1 migration
+  (<code>V3__p2_1_town_entry.sql</code>). Source: <code>docs/p2.1-town-entry/sdd.md</code>, section 1.</p>
+</header>
+<div class="legend">
+  <span><i class="swatch new"></i> New table in P2.1</span>
+  <span><b>user.email</b> = new column in P2.1</span>
+  <span><i class="swatch old"></i> Existing (P1/P2)</span>
+  <span><i class="line-solid"></i> Foreign key</span>
+  <span><i class="line-dotted"></i> Soft link (no database constraint)</span>
+</div>
+<div id="error">The diagram could not load. It needs internet access to fetch the Mermaid library from cdn.jsdelivr.net.</div>
+<main>
+  <div class="card">
+<pre class="mermaid">
+erDiagram
+  direction LR
+  user ||--o{ user_role : "has roles"
+  user ||--o{ user_metadata : "extra fields"
+  user ||--o{ interest : "saves"
+  user ||--o{ conversation : "talks"
+  user ||--o{ event : "submitted_by"
+  user ||--o{ business : "owner_user_id"
+  user ||--o{ feedback : "gives"
+
+  event_type ||--o{ event : "kind"
+  business ||--o{ event : "venue / organizer"
+  ingestion_source ||--o{ event : "origin"
+  api_client ||--o{ event : "origin"
+  event ||--o{ event_metadata : "extra fields"
+  event ||--o{ event_field_confidence : "per-field confidence"
+  event ||--o{ event_category : "has"
+  category ||--o{ event_category : "in"
+  event ||--o{ event_tag : "has"
+  tag ||--o{ event_tag : "in"
+  event ||--o{ feedback : "about"
+  event ||--o{ conversation : "context"
+
+  business ||--o{ business_metadata : "extra fields"
+  ingestion_source ||--o{ ingestion_source_metadata : "extra fields"
+  category ||--o{ interest : "by category"
+  tag ||--o{ interest : "by tag"
+  conversation ||--o{ message : "contains"
+
+  town ||--o{ town_slug_alias : "old slugs redirect"
+  user ||--o{ demand_signal : "wants (waitlist)"
+  town ||..o{ demand_signal : "place_key = slug (soft)"
+  town ||..o{ event : "postal_code match (soft)"
+
+  user {
+    bigint id PK
+    varchar phone_number UK
+    varchar name
+    varchar email UK "NEW in P2.1, lowercase"
+    varchar external_ref UK "web cookie id (V2)"
+  }
+  user_role {
+    bigint user_id FK
+    varchar role
+  }
+  user_metadata {
+    bigint user_id FK
+    varchar key
+    text value
+  }
+  event {
+    bigint id PK
+    varchar title
+    datetime starts_at
+    varchar location
+    varchar postal_code
+    decimal latitude
+    decimal longitude
+    varchar status "draft or published"
+    varchar origin_type
+  }
+  event_metadata {
+    bigint event_id FK
+    varchar key
+    text value
+  }
+  event_type {
+    bigint id PK
+    varchar name UK
+  }
+  category {
+    bigint id PK
+    varchar name UK
+  }
+  tag {
+    bigint id PK
+    varchar name UK
+  }
+  interest {
+    bigint id PK
+    bigint user_id FK
+    bigint category_id FK
+    bigint tag_id FK
+  }
+  business {
+    bigint id PK
+    varchar name
+    bigint owner_user_id FK
+  }
+  ingestion_source {
+    bigint id PK
+    varchar connector_shape
+  }
+  api_client {
+    bigint id PK
+    varchar name
+  }
+  conversation {
+    bigint id PK
+    bigint user_id FK
+    bigint event_id FK
+  }
+  message {
+    bigint id PK
+    bigint conversation_id FK
+    varchar direction
+  }
+  feedback {
+    bigint id PK
+    bigint user_id FK
+    bigint event_id FK
+    varchar signal
+  }
+  town {
+    bigint id PK
+    varchar slug UK "ashland-ma"
+    varchar name
+    char state
+    varchar postal_code
+    decimal latitude
+    decimal longitude
+    varchar status "live or hidden"
+    int popular_rank
+  }
+  town_slug_alias {
+    varchar alias PK
+    bigint town_id FK
+  }
+  demand_signal {
+    bigint id PK
+    bigint user_id FK
+    varchar kind "town_waitlist"
+    varchar place_key "slug or text"
+    varchar place_label
+    varchar consent_version
+    varchar consent_text
+    timestamp created_at
+  }
+
+  classDef newTable fill:#ffdb66,stroke:#20243b,stroke-width:2px,color:#20243b
+  class town,town_slug_alias,demand_signal newTable
+</pre>
+  </div>
+</main>
+<footer>
+  Unique rules: <code>user.email</code> is unique, and <code>demand_signal</code> has a unique key on (user_id, kind, place_key),
+  so a repeated email for the same place creates no second row. <code>place_key</code> has no foreign key on purpose,
+  because visitors can ask for towns that Arangly has not added. The searchable place data lives in a read-only SQLite file, not in MySQL, so it is
+  not drawn here. Tables with a minor role show only key columns. The full DDL is in the migration files.
+</footer>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: false, theme: "neutral", er: { useMaxWidth: true }, securityLevel: "strict" });
+  try {
+    await mermaid.run({ querySelector: ".mermaid" });
+  } catch (e) {
+    console.error(e);
+    document.getElementById("error").style.display = "block";
+  }
+</script>
+</body>
+</html>

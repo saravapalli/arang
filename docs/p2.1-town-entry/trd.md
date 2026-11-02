@@ -4,7 +4,7 @@ type: TRD
 artifact_id: ARANG-TRD-P2-1
 parent: ARANG-PRD-P2-1
 status: draft
-version: 0.3
+version: 0.4
 driver: (you)
 approver:
 approver_role: product owner / driver
@@ -13,7 +13,7 @@ last_revised_date: 2026-11-01
 approved_date:
 review_provenance: none yet — first draft. Next: spec-section-reviewer drill, then the spec-reviewer gate, then driver sign-off.
 related_docs:
-  - docs/p2.1-town-entry/prd.md (PRD v1.1 (v1.0 approved; v1.1 delta pending read-through) — source of the ACs)
+  - docs/p2.1-town-entry/prd.md (PRD v1.3 — source of the ACs. v1.0 was approved; the v1.1–v1.3 additions are pending driver read-through)
   - docs/p2.1-town-entry/sdd.md (SDD — the "how"; written after this TRD)
   - docs/p2-consumer-discovery/trd.md (P2 TRD — REQ-01..19 there are unchanged by this feature)
   - docs/p2-consumer-discovery/sdd.md (DD-P2-3, DD-P2-9, DD-P2-11 — inputs)
@@ -23,7 +23,7 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
 
 # Arang — Town Entry & Coverage (P2.1) — TRD
 
-> **Verifiable technical requirements** for the approved P2.1 PRD (v1.0). Each `REQ-P2.1-##` is a
+> **Verifiable technical requirements** for the P2.1 PRD (v1.3; v1.0 approved, later additions pending read-through). Each `REQ-P2.1-##` is a
 > single testable "the system MUST…" statement tracing to a PRD acceptance criterion. This document
 > states *what must be true*. It does not name tables, libraries, route handlers, or data sources —
 > that is the SDD (`docs/p2.1-town-entry/sdd.md`).
@@ -116,6 +116,15 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
   and accessible labels MUST show the product name "Arangly" and MUST NOT show "Arang" alone.
   ⟵ AC-P2.1-15, AC-P2.1-17
 
+## Place data handling (added in TRD v0.4 from PRD v1.3)
+- **REQ-P2.1-18** — When the place data used for town search is missing or unusable, the system MUST still
+  start and serve all other pages. Town search MUST then return a clear unavailable error and the landing
+  MUST offer the live towns that are built into the page. The service health report MUST state that place
+  data is unavailable. ⟵ AC-P2.1-18
+- **REQ-P2.1-19** — The landing page MUST display the credit that the place-data license requires. Text
+  typed into the town search MUST NOT be sent to any third-party service. The service health report MUST
+  show the date of the place data in use. ⟵ AC-P2.1-19
+
 ## Coverage notes (REQ ↔ AC)
 | AC | Covered by |
 |----|-----------|
@@ -136,11 +145,15 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
 | AC-P2.1-15 | REQ-P2.1-17 |
 | AC-P2.1-16 | REQ-P2.1-16 |
 | AC-P2.1-17 | REQ-P2.1-17 |
+| AC-P2.1-18 | REQ-P2.1-18 |
+| AC-P2.1-19 | REQ-P2.1-19 |
 
-- **All 17 ACs are covered by at least one REQ.** 17 REQs — **2 over the 5–15 guideline.** The two
-  extra REQs come from the v1.1 additions (remember town; page identity). Flagged rather than hidden:
-  the alternative is to move "remember town" and "page identity" into a P2.1b, which I judge more
-  overhead than value. Driver's call.
+- **All 19 ACs are covered by at least one REQ.** 19 REQs — **4 over the 5–15 guideline.** The extra REQs
+  come from the v1.1 and v1.3 additions (remember town, page identity, place-data resilience, place-data
+  credit and handling). This is now past the point where I would keep one feature. **Recommendation:
+  split P2.1 into P2.1a "finding your town" (search, near me, town URLs, remember town, place data,
+  nothing-on state — UF-1,2,3,5,7) and P2.1b "demand and discoverability" (coming soon + waitlist,
+  sitemap, robots, page identity, email privacy — UF-4,6).** Driver's call; no split made.
 - **Gap closed:** REQ-P2.1-15 (email privacy) now traces to AC-P2.1-14 (added in PRD v1.1).
 - **Not covered by any REQ, on purpose:** the maintenance page (PRD §5, a static asset with no
   behavior to verify) and the brand name (a decision, not a requirement).
@@ -156,3 +169,9 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
   identity + brand). 13 → 17 ACs, 15 → 17 REQs (2 over the guideline, flagged). No design detail added.
 - **v0.3 (2026-11-01) — DRAFT.** Aligned to PRD v1.2: town URL form is `/towns/<slug>`, filters are
   query-only, and old slugs redirect permanently (REQ-P2.1-05). No new REQ.
+- **v0.4 (2026-11-01) — DRAFT.** Aligned to PRD v1.3: added REQ-P2.1-18 (place-data resilience) and
+  REQ-P2.1-19 (credit, no third-party lookups while typing, data date in health report). 17 → 19 REQs; the
+  oversize is flagged with a split recommendation (P2.1a / P2.1b). No design detail added; the SQLite
+  approach lives only in the PRD's non-binding SDD notes.
+- **v0.4a (2026-11-01):** Header references corrected to PRD v1.3. No requirement changed. The PRD's later
+  addition (the non-binding "populate process" note) adds no requirement, so no REQ was added.

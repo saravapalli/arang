@@ -4,7 +4,7 @@ type: PRD
 artifact_id: ARANG-PRD-P2-2
 parent: ARANG-INIT-001
 status: draft
-version: 0.1
+version: 0.2
 driver: (you)
 approver: (you)
 approver_role: product owner / driver
@@ -315,3 +315,37 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   its live-site observations on our own build (A1). Scope deliberately excludes filters, offers,
   ingestion, moderation, and organizer intake (§5). Three open questions (OQ-P2.2-1..3) need the driver.
   No code written beyond the directions-link fix.
+- **v0.2 (2026-11-01) — DRAFT.** Added the "Notes for the SDD" appendix below (non-binding) to keep the
+  geocoding design discussion. No change to requirements.
+
+---
+
+## Appendix — Notes for the SDD (NON-BINDING hand-off; not requirements)
+> **Why this is here:** these notes keep a design discussion from 2026-11-01 so it is not lost. They are
+> recommendations for the SDD to confirm or change. They do not change any acceptance criterion or open
+> question. The P2.1 PRD has the full version of the place-data notes; read it first
+> (`docs/p2.1-town-entry/prd.md`, "Appendix — Notes for the SDD").
+
+**Populate process.** The step-by-step build, validation, publish, deploy, and rollback process for the SQLite file is written once, in the P2.1 PRD appendix ("How the SQLite file is populated"). P2.2 reuses it and only adds the address and venue tables, plus the address checks in step 5.
+
+**What P2.2 adds beyond P2.1:** address and venue placement (OQ-P2.2-1). The same offline-built, read-only
+**SQLite** file approach can carry it, with extra tables built from the OpenStreetMap extract:
+street addresses (street, house number, ZIP, point) and named venues (temples, libraries, halls, parks).
+
+**Recommendations to confirm in the SDD:**
+1. **Geocode once, when an event is published or its location text changes.** Store the resulting point on
+   the event in the main database (MySQL). Do not look it up on each page view. Never write to the SQLite file.
+2. **Matching logic is ours to write:** normalize street types ("St" / "Street"), numbers, and ZIPs; try an
+   exact address match first, then a venue-name match inside the event's town. If neither matches, do not
+   pin the event, or use the ZIP-centre pin labeled approximate (OQ-P2.2-1 decides which).
+3. **Reject, do not guess:** location text that names several places ("Multiple locations", a list of
+   states) must fail the "specific location" rule (validations V2 and V3) before any lookup.
+4. **Coverage test before commitment:** run real events through the lookup (for example the Sri Lakshmi
+   Temple at 117 Waverly St, Ashland) and record the hit rate. OSM house-number and venue coverage varies.
+5. **Escalation path:** if hit rate is too low on messy flyer text, move to a self-hosted Nominatim or a
+   paid geocoder behind the same small interface. Keep the geocoder swappable.
+6. **License:** OSM data is ODbL. Attribution is required. Share-alike duties for a derived database and
+   for stored results are not yet confirmed. Read the license before launch.
+7. **Public Nominatim is not suitable for ingestion-scale or type-ahead use** (1 request per second cap,
+   caching required, autocomplete forbidden). It could serve a very small, cached, user-triggered volume
+   only if the policy is followed.
