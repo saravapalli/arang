@@ -4,7 +4,7 @@ type: PRD
 artifact_id: ARANG-PRD-P2-1
 parent: ARANG-INIT-001
 status: approved
-version: 1.5
+version: 1.6
 driver: (you)
 approver: (you)
 approver_role: product owner / driver
@@ -58,9 +58,9 @@ URL, so organic discovery — a main way "your own town" users would find a hype
 cannot work. The marketing promise ("any town, any size") exceeds what the system can resolve.
 
 ## 3. GOALS & SUCCESS METRICS
-- **G1 — Find any in-region town fast:** a visitor can reach their town by typing the start of a town name or
-  a ZIP, or by tapping near-me, in a few seconds.
-  *Metric: for any place in the supported region (see Concepts), typing its name or ZIP yields a
+- **G1 — Find any in-region town fast:** a visitor can reach their town by typing the start of a town name,
+  or by tapping near-me, in a few seconds.
+  *Metric: for any place in the supported region (see Concepts), typing its name yields a
   matching suggestion; selecting it opens that town's events (or, for a town Arangly does not serve yet, its coming-soon state).*
 - **G2 — Honest coverage:** the product states truthfully whether Arang is live in the chosen town.
   *Metric: a town is shown as "live" only if it meets the coverage definition (OQ-P2.1-2); every
@@ -89,8 +89,9 @@ cannot work. The marketing promise ("any town, any size") exceeds what the syste
 Tag legend: `[core]` P2.1 must-have · `[stretch]` if cheap.
 
 ### Group A — Reaching a town
-- **UF-P2.1-1 (search by town name or ZIP)** `[core]` — As a visitor, I type part of a town name or
-  a ZIP code and see matching places (with their ZIP and state), pick one, and land on that town.
+- **UF-P2.1-1 (search by town name)** `[core]` — As a visitor, I type part of a town name and see matching
+  places (with their state), pick one, and land on that town. *(v1.6: search by ZIP moved to the later phase
+  P2.3, `docs/p2.3-place-search/prd.md`.)*
 - **UF-P2.1-2 (near me)** `[core]` — As a visitor, I tap "Find events near me", allow location, and
   am taken to the nearest live town; if none is near, I am told so and offered the search instead.
 - **UF-P2.1-3 (open a town directly)** `[core]` — As a visitor with a link or bookmark to a town, I
@@ -118,9 +119,9 @@ notification emails, sharing, accounts) appear only in §5 "Out of scope".*
 
 ## 5. SCOPE
 **In scope (P2.1):**
-- Town/ZIP search with suggestions over the supported region — the Massachusetts municipalities (UF-P2.1-1).
-  *(v1.4)* Villages and neighborhoods (for example Saxonville, Newton Centre) are **not** searchable in P2.1;
-  they are a later phase.
+- Town-name search with suggestions over the supported region — the Massachusetts municipalities (UF-P2.1-1).
+  *(v1.4)* Villages and neighborhoods (for example Saxonville, Newton Centre) are **not** searchable in P2.1.
+  *(v1.6)* Search by ZIP is **not** in P2.1. Both move to the later phase P2.3 (`docs/p2.3-place-search/prd.md`).
 - Near-me → nearest live town, with a defined distance limit (UF-P2.1-2).
 - A stable URL per live town that opens it directly; unknown/invalid town URLs handled (UF-P2.1-3).
 - A defined, data-driven notion of a "live" town, so coverage is not hard-coded in the front end.
@@ -143,6 +144,8 @@ notification emails, sharing, accounts) appear only in §5 "Out of scope".*
 - Places outside Massachusetts, even within 100 miles of Ashland (driver decision, 2026-11-01). They are not
   resolved as places. A visitor who types one gets the "only in Massachusetts for now" message with the email
   form (AC-P2.1-07); the typed text is stored as given.
+- *(v1.6)* Search by ZIP, and village or neighborhood names that lead to their town. Moved to P2.3
+  (`docs/p2.3-place-search/prd.md`), driver decision 2026-11-01.
 - Verifying email ownership (double opt-in). P2.1 marks records unverified instead; verification is required
   before any notification is sent (later phase).
 - Admin UI to mark towns live (data change only for now — see OQ-P2.1-2).
@@ -152,7 +155,7 @@ notification emails, sharing, accounts) appear only in §5 "Out of scope".*
 - *(v1.1)* The brand-name decision itself is made: **Arangly** (see §15). Only its consistent use on P2.1 screens is a requirement here (AC-P2.1-17).
 
 ## 6. SERVICE BOUNDARY
-- **Owns (P2.1):** town resolution (name/ZIP → place), the coverage definition and its data, the
+- **Owns (P2.1):** town resolution (name → place), the coverage definition and its data, the
   demand-capture record and its endpoint, per-town URL routing, and sitemap/robots content.
 - **Reads (does not change):** published events and the discovery API (P2); ZIP centroid data (P1/P2).
 - **Does not own:** event ingestion (P1/P3), categories/interests (P2), email delivery (future).
@@ -165,7 +168,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 
 | # | Input | Rule | Outcome |
 |---|-------|------|---------|
-| V1 | Search text (town/ZIP) | Trimmed; case-insensitive; length 1–80 chars; punctuation removed; a trailing state word ("ma", "mass", "massachusetts") ignored, so "Ashland, MA" finds Ashland. Text: every typed word must match the **start** of a word in the place name, in any order. Digits only: 1–5 digits match the start of a ZIP; more than 5 digits or a ZIP+4 ("01721-1234") use the first 5 digits. Mixed letters and digits are treated as words | NORMALIZE; over-length → REJECT (400) |
+| V1 | Search text (town name) | Trimmed; case-insensitive; length 1–80 chars; punctuation removed; a trailing state word ("ma", "mass", "massachusetts") ignored, so "Ashland, MA" finds Ashland. Every typed word must match the **start** of a word in the place name, in any order. Mixed letters and digits are treated as words. Digits only (for example a ZIP): no search; the visitor sees a hint to type a town name *(v1.6; ZIP search is P2.3)* | NORMALIZE; over-length → REJECT (400) |
 | V2 | Search text with no match | No suggestions and ≥3 characters. (1–2 characters with no match: no message, the visitor keeps typing) | The "not found in Massachusetts" message with the email form (AC-P2.1-07). Never a coming-soon claim for a place Arangly cannot verify |
 | V3 | Email (waitlist) | Single address, ≤254 chars, one `@` with non-empty local/domain parts; no whitespace/control chars | REJECT (400) with a field error if invalid; NORMALIZE (trim, lowercase the whole address) if valid |
 | V4 | Town reference (waitlist) | Must be a resolvable place the server recognizes, or the free-text town the visitor typed (≤80 chars) | NORMALIZE (collapse whitespace); unresolved free text is stored as typed with a flag, not rejected |
@@ -181,11 +184,15 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   Ashland, including non-Massachusetts ZIPs (Rhode Island 028xx–029xx, New Hampshire, southern Maine and
   Vermont, Connecticut, and a few New York ZIPs). A two-digit prefix does **not** give the state (for example
   `05501` and `05544` are Andover, MA, and prefix `02` includes Rhode Island). **A place-name source is
-  therefore a NEW dependency** (town name ↔ ZIP ↔ state), and the non-MA rows must be excluded.
-- **Place-data source (to be evaluated, not committed):** **OpenStreetMap is the preferred source.** A free
-  alternative replaces it only if the evaluation (SDD task) shows it is better on coverage, accuracy, license
-  terms, or effort. Free candidates named for that evaluation, none verified yet: US Census gazetteer files
-  (believed public domain), MassGIS town data, GeoNames (believed CC BY). See A4.
+  therefore a NEW dependency.** *(v1.6)* P2.1 needs only town names, states, and centre points; it does not
+  link ZIPs to towns. The existing ZIP file keeps its current role (event map pins, P1) and is not changed.
+- **Place-data source:** OpenStreetMap was the preferred source, with a free alternative allowed if it proved
+  better. *(v1.6)* The SDD's T1 evaluation found the **US Census town list** better for P2.1 (all 351
+  municipalities, unique names, no share-alike duty); OpenStreetMap has 350 and its license would require
+  sharing our derived file. Driver decision 2026-11-01: **Census town list for P2.1.** See SDD DD-P2.1-4.
+- **GeoNames credit (existing gap, v1.6):** the bundled ZIP file (`zip-centroids.csv`) comes from GeoNames,
+  which is licensed **CC BY 4.0** (verified in its readme). Production already uses it for map pins but shows
+  no credit. P2.1 adds the credit "ZIP data: GeoNames (geonames.org)" to the site (AC-P2.1-19).
 - **Browser geolocation:** the near-me button depends on the browser Geolocation API and user
   permission. Where it is denied or unavailable, the flow falls back to search.
 - **Public hosting / domain:** the sitemap and robots need the production public base URL
@@ -214,7 +221,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   release (see `.kiro/steering/environments.md`).
 
 ## 10. CONCEPTS
-- **Place:** a Massachusetts municipality (city or town) with at least one ZIP and a centre point. The unit
+- **Place:** a Massachusetts municipality (city or town) with a name, state, and centre point. The unit
   the visitor searches for and the URL slug identifies (e.g. "Ashland, MA"). Villages and neighborhoods
   inside a municipality are not places in P2.1. *(v1.4)*
 - **Supported region:** the set of places the system can resolve: the Massachusetts municipalities. Anything
@@ -242,13 +249,12 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   every other Massachusetts municipality starts as coming-soon.
 - **A3 [ASSUMPTION]:** Near-me uses a 100-mile limit to the nearest live town (it matches the
   footer text already shown on the landing page); the limit is configuration.
-- **A4 [ASSUMPTION — unverified]:** A free dataset that lists the Massachusetts municipalities with ZIPs and
-  centre points can be bundled under its license. OpenStreetMap is preferred (§8); the license and credit
-  terms of whichever source is chosen — including the ODbL share-alike question for OpenStreetMap — are
-  verified before that source is used.
-- **A5 [ASSUMPTION]:** A ZIP may map to more than one municipality, and a municipality to several ZIPs;
-  search returns the combination, and the slug uses the name + state. The 351 Massachusetts municipality
-  names are believed unique (to be confirmed by a data check).
+- **A4 [RESOLVED, v1.6]:** The US Census town list (2024 gazetteer, county subdivisions) gives the 351
+  Massachusetts municipalities with names and centre points. It is a US federal government work, generally not
+  under copyright (17 U.S.C. §105 — general law; the Census site asks for a source citation). The site credits
+  it as "Town data: U.S. Census Bureau".
+- **A5 [VERIFIED, v1.6]:** The 351 Massachusetts municipality names are unique after removing the Census
+  suffixes ("town", "city", "Town city"), checked in the T1 evaluation. The slug uses the name + state.
 - **A6 [ASSUMPTION]:** The demand-capture endpoint is public and unauthenticated (like the SPA);
   abuse is controlled by validation and a baseline throttle, not by accounts.
 - **A7 [ASSUMPTION]:** Sending notification email is a later phase, so P2.1 needs no email provider.
@@ -284,12 +290,12 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 ## 14. ACCEPTANCE CRITERIA
 - **AC-P2.1-01** ⟵ UF-P2.1-1: Typing text (≥1 character, normalized as in V1) returns suggestions where every typed word matches
   the **start** of a word in the place name, case-insensitive, in any order (so "ash" and "north and" match,
-  "land" does not match Ashland); each shows place, state, and ZIP. Typing 1–5 digits returns places with a ZIP
-  that starts with them. Selecting a suggestion for a live town opens that town's events. Pressing Enter with
+  "land" does not match Ashland); each shows place and state. Typing only digits (for example a ZIP) shows a
+  hint to type a town name, not a "not found" message *(v1.6)*. Selecting a suggestion for a live town opens that town's events. Pressing Enter with
   exactly one suggestion opens it. At most 8 suggestions are shown besides exact matches (AC-P2.1-02). *(v1.4:
   word-start matching, driver decision.)*
-- **AC-P2.1-02** ⟵ UF-P2.1-1: For every Massachusetts municipality, typing its exact name (or one of its
-  ZIPs) returns a suggestion for it, **even when many other names also match** — an exact match is never
+- **AC-P2.1-02** ⟵ UF-P2.1-1: For every Massachusetts municipality, typing its exact name returns a suggestion
+  for it, **even when many other names also match** — an exact match is never
   dropped by the limit on the number of suggestions. If two places share a name, all appear, each identified.
 - **AC-P2.1-03** ⟵ UF-P2.1-2: With location permission granted, "Find events near me" opens the
   nearest live town if it is within the near-me limit (A3). If the nearest live town is farther, no
@@ -306,7 +312,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   coming-soon state. If place data is unavailable, a not-live town's URL shows the landing screen. A town URL
   with uppercase letters or a trailing slash redirects permanently to its lowercase form without the slash.
 - **AC-P2.1-07** ⟵ UF-P2.1-4: When the visitor selects a suggestion for a place that is not live, the visitor
-  sees "Coming soon to <place>" and an email field. When text of 3 or more characters matches no place, the
+  sees "Coming soon to <place>" and an email field. When text of 3 or more characters (not digits only, see AC-01) matches no place, the
   visitor sees that the place was not found in Massachusetts, that Arangly covers Massachusetts only for now,
   a way to retry, and an email field to be told when Arangly reaches them (the typed text is stored as given).
   This message never claims that Arangly is coming to that place. It appears only after the visitor pauses
@@ -351,8 +357,9 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   unusable, the site still starts and every other page works. Town search shows a clear
   "search is unavailable right now" message and the landing offers the live towns that are built into the
   page. The service health report states that place data is unavailable.
-- **AC-P2.1-19** ⟵ UF-P2.1-1 *(v1.3, credit and data handling)*: The credit that the place-data license
-  requires is visible on the landing page (for example in its footer). Text typed into the town search is
+- **AC-P2.1-19** ⟵ UF-P2.1-1 *(v1.3, credit and data handling)*: The credit that each data license
+  requires — the town data (U.S. Census Bureau) and the ZIP data already used for map pins (GeoNames) — is
+  visible on the landing page (for example in its footer). Text typed into the town search is
   never sent to a third-party service; this is checked by watching the network requests made while typing.
   The health report shows the date of the place data in use.
 - **AC-P2.1-20** ⟵ UF-P2.1-4 *(v1.4, retention)*: A waitlist record is deleted automatically no later than one
@@ -426,6 +433,12 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
 - **v1.5a (2026-11-01):** Third gate fix: AC-01 refers to the V1 normalization rules (N2). Driver confirmed the
   change-town rule.
 - **v1.5 APPROVED (2026-11-01).** Driver sign-off of PRD v1.5 (incl. v1.5a), after three independent review gates (NEEDS-CHANGES → PASS-WITH-FIXES → PASS-WITH-FIXES, all fixes applied).
+- **v1.6 (2026-11-01) — APPROVED revision (driver decision).** Search by ZIP is removed from P2.1 and moved, with
+  village and neighborhood names, to the later phase **P2.3** (`docs/p2.3-place-search/prd.md`). Reason: ZIPs add a
+  second data source, ZIP-to-town linking, and 165 shared ZIPs for a small benefit; town names cover the live
+  towns. Typing only digits now shows a hint to type a town name (V1, AC-01). Place data source decided after the
+  T1 evaluation: **US Census town list** (A4, §8). The GeoNames credit for existing map pins is added to AC-19.
+  Changed: G1, UF-1, §5, §6, V1, §8, §10 Place, A4, A5, AC-01, AC-02, AC-19.
 
 ---
 

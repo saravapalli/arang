@@ -32,7 +32,7 @@ tags: [event-detail, accuracy, geocoding, trust, share, calendar, directions, re
 > distance, place, and details are shown and validated; the actions available on an event (share,
 > add to calendar, directions, register, report a problem); and a stable link for each event. It
 > does **not** cover finding or collecting events (ingestion, P3), approving them (curation), the
-> organizer's side (intake), or new ways to filter and personalize (a later P2.3).
+> organizer's side (intake), or new ways to filter and personalize (a later phase, P2.4 or after).
 
 ## 1. CONTEXT
 P2 shipped discovery: a list, a map with pins, a detail view, and a Google Maps link. The 2026-11-01
@@ -140,7 +140,7 @@ Tag legend: `[core]` P2.2 must-have · `[stretch]` if cheap.
 
 **Out of scope (explicit):**
 - **New filters** (free/paid, children's ages, registration-required) and **saved-events** improvements
-  → a later P2.3 PRD.
+  → a later phase (P2.4 or after; P2.3 is now place search, `docs/p2.3-place-search/prd.md`).
 - **Business offers as a separate kind** from events, with expiry and redemption conditions → later.
 - **Finding and collecting events** (source registry, connectors, deduplication, change detection) → P3.
 - **Moderation workflow** (review queues, edit history, restore) → a later curation phase. P2.2 only

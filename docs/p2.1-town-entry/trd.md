@@ -4,7 +4,7 @@ type: TRD
 artifact_id: ARANG-TRD-P2-1
 parent: ARANG-PRD-P2-1
 status: approved
-version: 0.6
+version: 0.7
 driver: (you)
 approver: (driver)
 approver_role: product owner / driver
@@ -13,7 +13,7 @@ last_revised_date: 2026-11-01
 approved_date: 2026-11-01
 review_provenance: gate 1 on v0.4 → NEEDS-CHANGES (fixed in v0.5); gate 2 on v0.5 → PASS-WITH-FIXES (fixed in v0.6).
 related_docs:
-  - docs/p2.1-town-entry/prd.md (PRD v1.5 — source of the ACs. v1.0 was approved; the v1.1–v1.5 additions are pending driver read-through)
+  - docs/p2.1-town-entry/prd.md (PRD v1.6 — source of the ACs. v1.0 was approved; the v1.1–v1.6 additions are pending driver read-through)
   - docs/p2.1-town-entry/sdd.md (SDD — the "how"; written after this TRD)
   - docs/p2-consumer-discovery/trd.md (P2 TRD — REQ-01..19 there are unchanged by this feature)
   - docs/p2-consumer-discovery/sdd.md (DD-P2-3, DD-P2-9, DD-P2-11 — inputs)
@@ -23,7 +23,7 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
 
 # Arang — Town Entry & Coverage (P2.1) — TRD
 
-> **Verifiable technical requirements** for the P2.1 PRD (v1.5; v1.0 approved, later additions pending read-through). Each `REQ-P2.1-##` is a
+> **Verifiable technical requirements** for the P2.1 PRD (v1.6; v1.0 approved, later additions pending read-through). Each `REQ-P2.1-##` is a
 > single testable "the system MUST…" statement tracing to a PRD acceptance criterion. This document
 > states *what must be true*. It does not name tables, libraries, route handlers, or data sources —
 > that is the SDD (`docs/p2.1-town-entry/sdd.md`).
@@ -35,17 +35,16 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
 
 ## Town search and selection
 - **REQ-P2.1-01** — The system MUST, for search text of 1–80 characters, return places in which every typed
-  word matches the start of a word in the place name (case-insensitive, any order), and for 1–5 digits,
-  return places having a ZIP that begins with them. Before matching, the system MUST remove punctuation, MUST
-  ignore a trailing state word ("ma", "mass", "massachusetts"), and MUST use the first 5 digits of a longer digit
-  string or a ZIP+4. Mixed letters and digits MUST be treated as words. A query that is empty after normalization
+  word matches the start of a word in the place name (case-insensitive, any order). Before matching, the system
+  MUST remove punctuation and MUST ignore a trailing state word ("ma", "mass", "massachusetts"). Mixed letters and
+  digits MUST be treated as words. Text made only of digits MUST NOT be searched; the page MUST show a hint to type a
+  town name (search by ZIP is in P2.3). A query that is empty after normalization
   MUST return no results without an error. A typed word that matches only the middle of a word MUST NOT produce a
   match. The system MUST
-  return at most 8 matches in addition to exact matches. Each returned place MUST include its name, state, and ZIP. Selecting a returned live
+  return at most 8 matches in addition to exact matches. Each returned place MUST include its name and state. Selecting a returned live
   place MUST open that place's events. Pressing Enter with exactly one suggestion MUST open it. Search text
   longer than 80 characters MUST be rejected with a validation error (HTTP 400). ⟵ AC-P2.1-01
-- **REQ-P2.1-02** — For every Massachusetts municipality, searching its exact name, or any one of its ZIPs,
-  MUST return that place, regardless of how many other places also match and regardless of any limit on the
+- **REQ-P2.1-02** — For every Massachusetts municipality, searching its exact name MUST return that place, regardless of how many other places also match and regardless of any limit on the
   number of results. When two or more places share a name, the system MUST return all of them, each
   identified. ⟵ AC-P2.1-02
 
@@ -83,7 +82,7 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
 
 ## Coming soon and demand capture
 - **REQ-P2.1-09** — When the visitor selects a suggestion for a place that is not live, the system MUST display
-  "Coming soon to <place>" with an email field. When text of 3 or more characters matches no place, the system
+  "Coming soon to <place>" with an email field. When text of 3 or more characters (not digits only) matches no place, the system
   MUST display that the place was not found in Massachusetts and that Arangly covers Massachusetts only for
   now, with a way to retry and an email field that records the typed text as given. That message MUST NOT
   claim that Arangly is coming to the place. That message MUST appear only after a typing pause of about
@@ -139,7 +138,8 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
   start and serve all other pages. Town search MUST then return a clear unavailable error and the landing
   MUST offer the live towns that are built into the page. The service health report MUST state that place
   data is unavailable. ⟵ AC-P2.1-18
-- **REQ-P2.1-19** — The landing page MUST display the credit that the place-data license requires. Text
+- **REQ-P2.1-19** — The landing page MUST display the credit that each data license requires (the town data and
+  the ZIP data already used for map pins). Text
   typed into the town search MUST NOT be sent to any third-party service. The service health report MUST
   show the date of the place data in use. ⟵ AC-P2.1-19
 
@@ -209,3 +209,5 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
 - **v0.6a (2026-11-01):** Third gate fixes: REQ-01 adds the mixed-text rule and the empty-query rule (N1, N2); REQ-16
   grammar (N4).
 - **v0.6 APPROVED (2026-11-01).** Driver sign-off of TRD v0.6 (incl. v0.6a), after three independent review gates.
+- **v0.7 (2026-11-01) — APPROVED revision (driver decision).** Aligned to PRD v1.6: ZIP search removed from REQ-01
+  and REQ-02 (moved to P2.3); digits-only input shows a hint; REQ-19 covers both credits. Still 20 REQs.

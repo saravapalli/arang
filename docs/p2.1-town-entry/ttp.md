@@ -4,7 +4,7 @@ type: TTP
 artifact_id: ARANG-TTP-P2-1
 parent: ARANG-SDD-P2-1
 status: approved
-version: 0.2
+version: 0.3
 driver: (you)
 approver: (driver)
 approver_role: product owner / driver
@@ -50,22 +50,24 @@ sleeping.
 ## 1. Test cases by task
 
 ### T1, T2 — Place data (source evaluation, build script)
-- **TC-P2.1-001** (B) — *Given* a build input that includes a Rhode Island ZIP (`02801`), *when* the build runs, *then*
-  validation fails, the script exits non-zero, and no file and no manifest update is published. ⟵ REQ-02
-- **TC-P2.1-002** (B) — Build input with one municipality that has no ZIP → validation fails; with all municipalities
-  holding ≥ 1 ZIP and the count in the expected range (about 351) → validation passes. ⟵ REQ-02
-- **TC-P2.1-003** (B) — On a passing build, every place row returns itself when searched by its exact name and by each
-  of its ZIPs, using the same matching code as the app; `05501` and `05544` are absent; no output ZIP is outside the
-  authoritative Massachusetts list. ⟵ REQ-02
+- **TC-P2.1-001** (B) — *Given* a build input that includes a non-Massachusetts county subdivision (for example a Rhode
+  Island row), *when* the build runs, *then* validation fails, the script exits non-zero, and no file and no manifest
+  update is published. ⟵ REQ-02 *(v0.3: was a ZIP case; ZIP linking moved to P2.3.)*
+- **TC-P2.1-002** (B) — Build input with 350 municipalities → validation fails; with exactly 351 and the
+  "County subdivisions not defined" rows dropped → validation passes. ⟵ REQ-02
+- **TC-P2.1-003** (B) — On a passing build, every place row returns itself when searched by its exact name, using the
+  same matching code as the app; the file has no ZIP tables. ⟵ REQ-02
 - **TC-P2.1-004** (B) — A previous file contains slug `x-ma` that the new build lacks → fail. Two municipalities produce
   the same slug → fail. ⟵ REQ-02, REQ-05
-- **TC-P2.1-005** (B) — A source name "Agawam Town" is stored as "Agawam"; a municipality point placed in Rhode Island
+- **TC-P2.1-005** (B) — Source names "Agawam Town city", "Bourne town", and "Boston city" are stored as "Agawam",
+  "Bourne", and "Boston"; a municipality point placed in Rhode Island
   fails the Massachusetts polygon test. ⟵ REQ-02
 - **TC-P2.1-006** (B) — The output file has `meta.schema_version = 1`, `data_date`, a non-empty `credits` list that
-  includes the GeoNames line, `journal_mode = DELETE`, and it opens with `mode=ro`. ⟵ REQ-18, REQ-19
-- **TC-P2.1-007** (X, T1) — The T1 decision note exists in SDD §9 DD-P2.1-4 and records: the chosen source, the verified
-  license and credit wording for every source, the answer to the ODbL share-alike question, the ZIP-to-state list used,
-  and a successful SQLite driver start in the target image with `org.sqlite.tmpdir` set. ⟵ REQ-19
+  includes "Town data: U.S. Census Bureau" and the GeoNames line, `journal_mode = DELETE`, and it opens with `mode=ro`. ⟵ REQ-18, REQ-19
+- **TC-P2.1-007** (X, T1) — **Passed in part, 2026-11-01:** the T1 note exists under SDD DD-P2.1-4 with the chosen source
+  (Census), the license and credit wording for Census and GeoNames, the ODbL answer, and a successful SQLite driver run
+  on the dev Mac with `org.sqlite.tmpdir` set. **Still open:** the same driver run inside the target Linux image (at the
+  T19 deploy step). ⟵ REQ-19
 
 ### T3 — Migration V3 and seed
 - **TC-P2.1-008** (I and M) — V3 applies cleanly on H2 and on `arang_dev`. Exactly 28 towns exist, all `state='MA'`,
@@ -86,7 +88,7 @@ sleeping.
 ### T5 — Town registry and site-config
 - **TC-P2.1-012** (I) — `GET /api/site-config` lists only `live` towns (a `hidden` town is absent), the `credits` list,
   the consent template, `nearMeMiles = 100`, and a `geo` value that mirrors `GeoPlaceSource`. ⟵ REQ-07, REQ-18, REQ-19
-- **TC-P2.1-013** (I) — A live `town` whose slug is not in the place file, or whose state or ZIP disagrees with it, causes
+- **TC-P2.1-013** (I) — A live `town` whose slug is not in the place file, or whose state disagrees with it, causes
   exactly one startup WARN naming the slug; a consistent setup logs no such warning. ⟵ REQ-07
 
 ### T6 — Places search API
@@ -94,8 +96,9 @@ sleeping.
   Andover; `ASH` → Ashland; **`land` → no Ashland**; accented input matches the unaccented name. ⟵ REQ-01
 - **TC-P2.1-015** (U) — Normalization: `Ashland, MA` → Ashland; `ashland massachusetts` → Ashland; `ma` → empty list
   (no error); a query of only punctuation → empty list. ⟵ REQ-01
-- **TC-P2.1-016** (U) — Digits: `017` → places with ZIPs starting `017`; `01721-1234` and `017211234` → ZIP `01721`; the
-  `zip` field is the matched ZIP for a digit query and the lowest-numbered ZIP for a name query. ⟵ REQ-01
+- **TC-P2.1-016** (U and E) — Digits only: `01721`, `017`, and `01721-1234` → no results and `hint = type_town_name`; the
+  landing shows the "type a town name" hint and not the "not found in Massachusetts" message. `route 9` (mixed) is
+  searched as words. ⟵ REQ-01, REQ-09 *(v0.3: ZIP search moved to P2.3.)*
 - **TC-P2.1-017** (U) — Exact-first and cap: a fixture with 12 places whose names start with "New", including a
   **not-live** "Newton", returns "Newton" first (marked `exact`), then at most 8 others; a fixture with two places that
   share a name returns both. ⟵ REQ-01, REQ-02
@@ -199,7 +202,7 @@ sleeping.
   only to store or report the choice; the only town-related requests are those that open the town. ⟵ REQ-16
 
 ### T15 — SPA landing search, near me, not found, credit
-- **TC-P2.1-054** (E) — Typing `ash` shows "Ashland, MA" with its ZIP; Enter with one suggestion opens it; the input and
+- **TC-P2.1-054** (E) — Typing `ash` shows "Ashland, MA"; Enter with one suggestion opens it; the input and
   suggestions are reachable by keyboard and have labels; results are announced. ⟵ REQ-01
 - **TC-P2.1-055** (S) — The near-me helper rejects latitude 91, longitude −181, and
   `NaN`; returns the nearest live town within 100 miles; returns none beyond 100 miles. ⟵ REQ-03
@@ -246,7 +249,7 @@ sleeping.
 | 06 | 023, 024, 052 |
 | 07 | 008, 012, 013, 020, 030, 065 |
 | 08 | 050, 051, 061 |
-| 09 | 020, 038, 057, 060 |
+| 09 | 016, 020, 038, 057, 060 |
 | 10 | 009, 032, 034, 035, 038, 042, 060, 063 |
 | 11 | 009, 032, 033, 036, 037, 039, 060 |
 | 12 | 043, 044, 045, 046, 047, 060 |
@@ -290,3 +293,5 @@ real MySQL, 1 also in the browser), 12 browser cases, and 2 manual operations ca
   runner; no class uses `java.time.Clock`; the P2 E2E spec depends on the `.chip` markup.
 - **v0.2 (2026-11-01) — APPROVED.** Driver accepted TTP-D1 (Vitest in T14), TTP-D2 (injectable `Clock`), TTP-D3
   (`mysqlIntegrationTest` Gradle task in T9). TC-055 is level S.
+- **v0.3 (2026-11-01) — APPROVED revision.** ZIP search moved to P2.3: TC-001, 002, 003, 005, 006, 013, 016, 054 changed to
+  the name-only design; TC-007 marked passed on the dev Mac, open for the Linux image. Still 65 cases.

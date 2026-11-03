@@ -4,7 +4,7 @@ type: SDD
 artifact_id: ARANG-SDD-P2-1
 parent: ARANG-TRD-P2-1
 status: approved
-version: 0.5
+version: 0.6
 driver: (you)
 approver: (driver)
 approver_role: product owner / driver
@@ -13,8 +13,8 @@ last_revised_date: 2026-11-01
 approved_date: 2026-11-01
 review_provenance: Independent spec-reviewer gate 2026-11-01 on PRD v1.3 / TRD v0.4 / SDD v0.3 → NEEDS-CHANGES (7 HIGH, 13 MEDIUM, 9 LOW). v0.4 applied all findings. Second gate on PRD v1.4 / TRD v0.5 / SDD v0.4 → PASS-WITH-FIXES (1 new HIGH, 9 MEDIUM, 13 LOW); v0.5 applies them. Third gate → PASS-WITH-FIXES (fixed in v0.5b). ALL design decisions DD-P2.1-1..14 CONFIRMED by the driver (2026-11-01), plus the change-town rule and the 19-task plan.
 related_docs:
-  - docs/p2.1-town-entry/prd.md (PRD v1.5 — what and why; its "Appendix — Notes for the SDD" is the origin of §3 place data)
-  - docs/p2.1-town-entry/trd.md (TRD v0.6 — REQ-P2.1-01..20 this design realizes)
+  - docs/p2.1-town-entry/prd.md (PRD v1.6 — what and why; its "Appendix — Notes for the SDD" is the origin of §3 place data)
+  - docs/p2.1-town-entry/trd.md (TRD v0.7 — REQ-P2.1-01..20 this design realizes)
   - docs/p2.1-town-entry/ttp.md (TTP v0.2, approved — 65 test cases proving each REQ)
   - docs/p2.1-town-entry/schema-erd.html (full-schema ER diagram)
   - docs/p2-consumer-discovery/sdd.md (P2 SDD — discovery API, SPA, same-origin serving, DD-P2-3/6/9)
@@ -43,11 +43,11 @@ tags: [design, sdd, p2.1, town-entry, landing, waitlist, sitemap, sqlite, geocod
 | U2 | Where does a demand signal live? | **CONFIRMED (DD-P2.1-1):** the email is identity on `user`; the wish is a `demand_signal` row that points at the user. | Email only in `demand_signal`; email in `user_metadata`; a table per signal type (all rejected, see DD-P2.1-1). |
 | U3 | How do crawlers see town content? | **CONFIRMED (DD-P2.1-3):** server-injected page shell. | Prerender at release; Node server rendering. |
 | U4 | What does the Java SQLite driver need at runtime? | **UNVERIFIED — checked in T1.** Known risk: `sqlite-jdbc` extracts a native library to a temp folder at startup; a read-only root filesystem or a minimal container image can block this unless `org.sqlite.tmpdir` points to a writable folder. Also to check: read-only open (`mode=ro`) works; the image's C library (glibc vs musl) has a matching native build. Full-text search (FTS5) is **no longer needed** for P2.1 (DD-P2.1-11). | A pure-Java reader (only if the native driver cannot run in the target image). |
-| U5 | Where do place names, states, and ZIPs come from, given that the bundled ZIP file has no names and no state, and its prefixes do not give the state? | **Resolved by design + T1 evaluation.** The place source supplies municipality name, state, and centre point. The build keeps only Massachusetts municipalities and Massachusetts ZIPs, taking the state from the source data, **never from a ZIP prefix**. **OpenStreetMap is preferred**; T1 compares free alternatives (US Census gazetteer files, MassGIS, GeoNames) on coverage, accuracy, license, and effort. | Prefix-to-state rule (rejected: wrong for `05501`/`05544` Andover MA and for Rhode Island inside prefix `02`, verified in `zip-centroids.csv`). |
+| U5 | Where do place names and states come from? | **Resolved by T1 and the driver (2026-11-01):** the **US Census 2024 town list** (county subdivisions) gives all 351 Massachusetts municipalities with names, state, and centre points. P2.1 does **not** link ZIPs to towns (ZIP search moved to P2.3), so no ZIP-to-state list is needed. | OpenStreetMap (350 of 351, ODbL share-alike on our derived file); a ZIP-prefix state rule (wrong for `05501`/`05544` and for Rhode Island in prefix `02`). |
 | U6 | Does a second JDBC source break the MySQL data source? | **Designed around:** Spring Boot's data-source auto-configuration backs off if any `DataSource` bean exists. The SQLite connection is **not** a bean; `GeoPlaceSource` (§3.4) opens it, loads the data, and closes it. | A second `DataSource` bean with `@Primary` on MySQL (works, easy to break). |
 | U7 | How is "one client" identified for throttling? | **Deployment configuration, not an assumption** (DD-P2.1-7). Verified: `server.forward-headers-strategy: framework` is set in `application.yml`; it honors forwarded proto/host but does not replace the connection address. Behind a proxy or tunnel every request then shares one address. The trusted header (Cloudflare `CF-Connecting-IP`, or a load balancer's header) is a setting; empty means "use the connection address". The AWS front door is **not decided** and is **not assumed**. | Trusting `X-Forwarded-For` by default (spoofable). |
 | U8 | Where does the shell inject content in the built `index.html`? | Verified on 2026-11-01 in `src/main/resources/static/index.html` (a git-ignored build output, so it is not visible in the repository): it contains exactly `<div id="root"></div>` and a title `<title>Arang — Discover</title>`. The injector replaces `<title>[^<]*</title>` (a pattern, not a fixed string) and the root `div`. If either is missing at startup, the shell **fails closed**: it serves the unmodified SPA page and logs an error once. | HTML comment markers (build tools may strip comments). |
-| U9 | What credit do the licenses require? | **UNVERIFIED — exit criterion of T1, before any source is used.** OSM is ODbL (credit "© OpenStreetMap contributors"; **share-alike duties for a derived database are not confirmed**). The bundled ZIP data is from GeoNames per the code comment, which calls it public domain; GeoNames is believed to be CC BY — to be checked. The credit is a **list** read from the place file (one line per source), so wording is data. The list always includes the ZIP-centroid source (GeoNames) as well as the place source chosen in T1. | Hard-coding the wording. |
+| U9 | What credit do the licenses require? | **Resolved by T1:** Census asks for a source citation → "Town data: U.S. Census Bureau". GeoNames, the source of the existing `zip-centroids.csv` used for event map pins, is **CC BY 4.0** (verified in its readme) → "ZIP data: GeoNames (geonames.org)" with a link. The credits are a list in the place file's `meta`; the GeoNames line is added there too, because the site uses that data. The `PostalGeoService` comment calling GeoNames public domain is corrected in T4. | Hard-coding the wording. |
 | U10 | Is find-or-create by email safe under concurrent requests on MySQL? | **Designed: single atomic statement** (DD-P2.1-12). A "look up, insert, on duplicate look up again" sequence can fail on MySQL when it runs inside one transaction, because the second read uses the first read's snapshot (default REPEATABLE READ). The proof must run on **MySQL**, not H2. | Re-read in a new transaction (works, more code). |
 | U11 | Does existing P2 code have the same race? | **Checked:** `ConsumerIdentityResolver.resolveWeb` uses look-up/insert/re-read, but its only caller (`InterestController`) runs it outside any transaction, so each statement commits on its own and the re-read sees the other row. **No bug today.** The pattern is fragile: it breaks if a transaction is ever added around it. No task; a code comment is added in T9. | Rewriting it now (no defect to fix). |
 
@@ -111,8 +111,8 @@ CREATE TABLE demand_signal (
   interests** (P2 creates no row before that). `model/User` and the `UserDao` row mapper do not select `email` today;
   T9 adds it.
 - **How a town becomes live (operator runbook, written in T19):** insert a `town` row with values taken from the place
-  file (slug, name, state, ZIP, point). A startup check (T5) logs a warning for any live `town` row whose slug is not in
-  the place file or whose state or ZIP disagrees with it.
+  file (slug, name, state, point) plus the town's primary ZIP for the existing discovery query. A startup check (T5)
+  logs a warning for any live `town` row whose slug is not in the place file or whose state disagrees with it.
 - **Removal on request (operator runbook, T19):** delete the `user` row found by `email`; the cascade removes that
   person's signals. P2.1 never links an email user to a cookie user (DD-P2.1-1), so a waitlist-only user has no interests.
 
@@ -161,16 +161,15 @@ The full-schema diagram is in `docs/p2.1-town-entry/schema-erd.html`.
 Built offline, never written by the app (§3). Illustrative schema (the build script owns the final form):
 `place(id, source_id, name, search_name, type, state, slug, latitude, longitude)` — for P2.1 one row per
 **Massachusetts municipality** (about 351; `type` = `city`|`town`, kept so villages can be added later without a schema
-change); `place_zip(place_id, zip)`; `zip(zip, state, latitude, longitude)` — Massachusetts ZIPs only;
-`meta(key, value)` with `schema_version`, `data_date`, `build_date`, `source_checksum`, `sources`, `credits`
-(one line per source), `license_text`. No full-text index and no spatial index are needed for P2.1 (DD-P2.1-11).
+change); `meta(key, value)` with `schema_version`, `data_date`, `build_date`, `source_checksum`, `sources`, `credits`
+(one line per source), `license_text`. **No ZIP tables in P2.1** (ZIP search is P2.3). No full-text index and no spatial index are needed for P2.1 (DD-P2.1-11).
 
 ## 2. Behavior → implementation (per REQ)
 
 | REQ | Realized by |
 |-----|-------------|
-| 01 word-start search by name or ZIP; Enter with one result opens it | `GET /api/places?q=` → `PlaceSearchService` in-memory word-start match (§3.4) (T6); SPA type-ahead (T15) |
-| 02 every MA municipality returns itself by exact name or ZIP; exact match never dropped | Exact matches are always returned before the capped remainder (§3.4) (T6); build check: every place row finds itself (T2) |
+| 01 word-start search by town name; digits-only input → hint; Enter with one result opens it | `GET /api/places?q=` → `PlaceSearchService` in-memory word-start match (§3.4) (T6); SPA type-ahead and digits hint (T15) |
+| 02 every MA municipality returns itself by exact name; exact match never dropped | Exact matches are always returned before the capped remainder (§3.4) (T6); build check: every place row finds itself (T2) |
 | 03 near me → nearest live within limit; coordinates not persisted; invalid rejected | **In the browser** (DD-P2.1-6): SPA reads live towns + `nearMeMiles` from `site-config`, validates the numbers, computes distance (T15). Coordinates never leave the device |
 | 04 location denied or unavailable | SPA message; search stays usable (T15) |
 | 05 town URL; change town; old slug redirect; canonical without query | `TownPageController` (T7); alias → 301; SPA routing (T14) |
@@ -197,25 +196,22 @@ Building the file is an **offline job**. The API server only **opens it read-onl
 download, conversion, table creation, or write happens in the API server.
 
 ### 3.2 Build (offline) — `scripts/geo/build_geo_sqlite.py` + README (T2), after the source evaluation (T1)
-1. **Get the source data** chosen in T1 (OpenStreetMap preferred) and record URL, date, checksum, and license.
+1. **Get the source data:** the US Census gazetteer county-subdivision file (decided in T1). Record URL, vintage,
+   download date, checksum, and the citation.
 2. **Keep only Massachusetts municipalities** (cities and towns) with name, state, and centre point. Villages and
    neighborhoods are excluded in P2.1.
-3. **Keep only Massachusetts ZIPs** from `geo/zip-centroids.csv`, taking each ZIP's state from an **authoritative
-   ZIP-to-state list chosen in T1** (for example the US Census ZIP-area relationship files, or the state field of the
-   chosen place source) — never from a prefix. Drop `05501` and `05544` (Andover, MA IRS ZIPs; no residents) and every
-   non-Massachusetts ZIP. Attach each municipality to its ZIPs (method set in T1: boundary containment preferred,
-   nearest-centroid as fallback).
+3. **Clean names.** Remove the Census suffixes "town", "city", and "Town city" (for example "Agawam Town city" →
+   "Agawam"). Drop the "County subdivisions not defined" water rows. *(No ZIP step in P2.1: ZIP linking moved to P2.3.)*
 4. **Names and slugs.** Build `search_name` (lowercase, accents removed) and the slug `<name>-<state>`. **Pin slugs:**
    read the previous published file and keep every slug it had; a name change keeps the old slug (the app redirects via
-   `town_slug_alias`). If two municipalities would share a slug, the build fails (the 351 names are believed unique).
+   `town_slug_alias`). If two municipalities would share a slug, the build fails (the 351 names were verified unique in T1).
 5. **Write** the SQLite file in `journal_mode=DELETE` (so a read-only open needs no side files), then the `meta` table.
 6. **Validate; publish nothing on failure:** municipality count within the expected range (about 351); every
    municipality's point lies inside the Massachusetts boundary (a polygon test, not a bounding box — the bounding box
-   also contains most of Rhode Island); every output ZIP is on the authoritative Massachusetts ZIP list; **every
-   municipality has at least one ZIP**; names carry no administrative suffix (for example "Agawam Town" is stored as
-   "Agawam"); no empty names; slugs unique;
-   every slug in the previous file still exists; all 28 seeded towns resolve with the right ZIP; **every place returns
-   itself** when searched by its exact name and by each of its ZIPs, using the same matching rules as the app (§3.4);
+   also contains most of Rhode Island; the polygon is the Census state boundary or the MassGIS outline, chosen in T2);
+   exactly 351 rows; names carry no administrative suffix; no empty names; slugs unique; every slug in the previous file
+   still exists; all 28 seeded towns resolve with the right state; **every place returns itself** when searched by its
+   exact name, using the same matching rules as the app (§3.4);
    `credits` is non-empty for every source used; the file opens read-only.
 7. Name `geo-YYYY-MM-DD.sqlite`, compute the checksum, mark read-only, upload to object storage (S3), and update
    `manifest.json` (current file name + checksum). Keep the last few versions for rollback.
@@ -228,19 +224,19 @@ also sets `org.sqlite.tmpdir` to a writable folder (U4). Local development runs 
 
 ### 3.4 Read (in the app)
 - **`GeoPlaceSource`** — at startup: if `arang.geo.file` is set and readable, open it read-only
-  (`jdbc:sqlite:file:<path>?mode=ro`), check `meta.schema_version == 1`, **load all places and ZIPs into memory**, and
+  (`jdbc:sqlite:file:<path>?mode=ro`), check `meta.schema_version == 1`, **load all places into memory**, and
   close the connection. Status: `UP` with `dataDate`, `schemaVersion`, `credits`; or `UNAVAILABLE` with a reason from a
   fixed list (`NOT_CONFIGURED`, `NOT_FOUND`, `UNREADABLE`, `WRONG_VERSION`). **It never throws at startup.** It is not a
   `DataSource` bean (U6). The in-memory data is immutable; a new file needs a restart.
-- **`PlaceSearchService.search(q)`** — first, on the trimmed raw text: if it is digits only, or digits joined by `-`
-  (a ZIP+4 such as `01721-1234`), take the digits, keep the first 5, and search ZIPs. Otherwise normalize: lowercase,
-  remove accents, replace punctuation with spaces, collapse spaces, and drop a trailing state word (`ma`, `mass`,
-  `massachusetts`). A query that is empty after this step (for example only `ma`) returns an empty list, not a 400:
-  - **Digits only:** places having a ZIP that starts with the (at most 5) digits.
+- **`PlaceSearchService.search(q)`** — first, on the trimmed raw text: if it is only digits, spaces, and `-` (for
+  example a ZIP), return `{"results":[],"hint":"type_town_name"}` without searching *(ZIP search is P2.3)*. Otherwise
+  normalize: lowercase, remove accents, replace punctuation with spaces, collapse spaces, and drop a trailing state word
+  (`ma`, `mass`, `massachusetts`). A query that is empty after this step (for example only `ma`) returns an empty list,
+  not a 400:
   - **Mixed letters and digits:** treated as text words.
   - **Text:** split into words; a place matches when **every** typed word is the start of some word in its
     `search_name`, in any order. A typed word that only matches the middle of a word does not match.
-  - **Ranking:** (1) **exact matches** — the whole normalized name equals `q`, or a ZIP equals `q` — always returned,
+  - **Ranking:** (1) **exact matches** — the whole normalized name equals `q` — always returned,
     never cut; (2) then the other matches: live towns first, then by name. The limit of **8** applies to group (2) only.
   - Each row carries `live` from `TownRegistry`. No SQL is built from user text (matching runs in Java), so there is no
     query injection surface.
@@ -258,19 +254,19 @@ and fetches this endpoint only when there is none (the Vite dev server has no sh
                "lat":42.2539,"lng":-71.4583,"zoom":14,"popularRank":1 } ],
   "nearMeMiles": 100,
   "consent": { "version":"v1", "text":"We'll only email you about Arangly in <town>." },
-  "credits": [ "© OpenStreetMap contributors", "ZIP centroids: GeoNames (credit wording to be verified in T1)" ],
+  "credits": [ "Town data: U.S. Census Bureau", "ZIP data: GeoNames (geonames.org), CC BY 4.0" ],
   "geo": "UP",
   "publicUrl": "https://arangly.com"
 }
 ```
 Only `status='live'` towns appear. `consent.text` is a template; the stored `consent_text` is the rendered string.
-`credits` lists one line per data source in use (the example assumes OSM is chosen in T1; the GeoNames line is
-always present while its ZIP centroids are bundled).
+`credits` lists one line per data source the site uses. The GeoNames line stays while `zip-centroids.csv` powers the
+event map pins.
 
 ### 4.2 `GET /api/places?q=<text>`
-- `200` `{ "results":[ { "slug":"ashland-ma","name":"Ashland","state":"MA","zip":"01721","live":true,"exact":true } ] }`
-  — exact matches first (any number), then at most 8 others; empty list when nothing matches. `zip` is the ZIP
-  that matched for a digit query, and the town's primary ZIP (the lowest-numbered one) for a name query.
+- `200` `{ "results":[ { "slug":"ashland-ma","name":"Ashland","state":"MA","live":true,"exact":true } ] }`
+  — exact matches first (any number), then at most 8 others; empty list when nothing matches. For digits-only input:
+  `{ "results":[], "hint":"type_town_name" }`.
 - `400` `{ "error":"q_invalid" }` — empty after trim, or longer than 80 characters.
 - `503` `{ "error":"geo_unavailable" }` — place data missing or wrong version (REQ-P2.1-18).
 
@@ -363,8 +359,7 @@ top-level `status` stays `UP`. The stale `"phase":"P1-skeleton"` value is update
 ```mermaid
 flowchart LR
   subgraph Offline
-    SRC[Place source chosen in T1 - OSM preferred] --> BUILD[build_geo_sqlite.py + validation]
-    ZIP[zip-centroids.csv - MA rows only] --> BUILD
+    SRC[US Census town list - decided in T1] --> BUILD[build_geo_sqlite.py + validation]
     BUILD -->|name, checksum, manifest| S3[(Object storage)]
   end
   S3 -->|deploy step copies| FILE[(geo-DATE.sqlite on local disk)]
@@ -476,8 +471,8 @@ Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-mile
 
 | REQ | Check |
 |-----|-------|
-| 01 | `q=ma` returns an empty list (200); `q=ash` returns Ashland; `q=north and` returns North Andover; `q=Ashland, MA` returns Ashland; **`q=land` does not return Ashland**; `q=017` and `q=01721-1234` return ZIP matches; 81 characters → 400; no more than 8 non-exact results; UI: Enter with one suggestion opens it |
-| 02 | Build check: every place returns itself by exact name and by each ZIP. App test: a fixture with more than 8 matching names still returns the exact match first |
+| 01 | `q=ma` returns an empty list (200); `q=ash` returns Ashland; `q=north and` returns North Andover; `q=Ashland, MA` returns Ashland; **`q=land` does not return Ashland**; `q=01721` and `q=01721-1234` return no results and `hint=type_town_name`, and the UI shows the hint, not "not found"; 81 characters → 400; no more than 8 non-exact results; UI: Enter with one suggestion opens it |
+| 02 | Build check: every place returns itself by exact name. App test: a fixture with more than 8 matching names still returns the exact match first |
 | 03 | **Client unit test:** out-of-range or non-numeric coordinates are rejected. Browser test: mocked position in Framingham → Framingham opens; far away → message, no navigation; no request carries the coordinates |
 | 04 | Browser test: permission denied → message, search usable, no error page |
 | 05 | Fresh browser: `/towns/ashland-ma` shows Ashland with no landing step; change town → landing; alias → 301 to the database slug; `?window=…` leaves canonical unchanged |
@@ -502,7 +497,7 @@ Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-mile
 > driver accepted about 16. The sizes are approximate: T4 and T9 touch about 4 files each, and T19 combines related
 > operational work. Brand strings are done in each screen's own task, so no task edits another task's screen.
 
-- **T1 — Place-data source evaluation (spike).** Compare OSM (preferred) with US Census gazetteer files, MassGIS, and
+- **T1 — Place-data source evaluation (spike). DONE 2026-11-01** (result under DD-P2.1-4). Compare OSM (preferred) with US Census gazetteer files, MassGIS, and
   GeoNames for the 351 municipalities: coverage, accuracy against the 28 seeded towns, license and credit terms (incl. ODbL
   share-alike), effort. Choose the authoritative ZIP-to-state list. Check name forms (administrative suffixes). Check the
   SQLite driver (U4: native library, temp folder, read-only open). **Output:** a decision
@@ -511,7 +506,8 @@ Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-mile
   produces a validated `geo-*.sqlite`. Depends on T1. *(REQ-02, 18, 19)*
 - **T3 — Migration V3 + seed.** `V3__p2_1_town_entry.sql` and a test that applies it and checks the seed; existing user
   tests still pass. *(REQ-07, 10, 11, 20)*
-- **T4 — Place-file reader + health.** `GeoPlaceSource`, `GeoProperties`, `HealthController`; driver dependency. Tests:
+- **T4 — Place-file reader + health.** `GeoPlaceSource`, `GeoProperties`, `HealthController`; driver dependency
+  (`org.xerial:sqlite-jdbc:3.54.1.0`); correct the `PostalGeoService` comment (GeoNames is CC BY 4.0, not public domain). Tests:
   each `UNAVAILABLE` reason and a good file. Depends on T1. *(REQ-18, 19)*
 - **T5 — Town registry + site-config.** `TownRegistry`, `Town`, `SiteConfigController` (live list, aliases, credits,
   startup consistency warning against the place file). Depends on T3, T4. *(REQ-07, 18, 19)*
@@ -576,9 +572,33 @@ check (§7); every task traces to a REQ.
   *Rejected:* a config file in the repo.
 - **DD-P2.1-3 — Crawlable pages by server-injected shell. CONFIRMED (2026-11-01).** *Rejected:* prerender at release
   (stale within a day); Node server rendering.
-- **DD-P2.1-4 — Place-data source and ZIP/state linking.** **CONFIRMED (driver, 2026-11-01).** OpenStreetMap preferred; a free
-  alternative wins only if T1 shows it is better on coverage, accuracy, license, or effort. State always from the source
-  data, never from a ZIP prefix. Municipality-to-ZIP by boundary containment if available, else nearest centroid.
+- **DD-P2.1-4 — Place-data source. CONFIRMED (driver, 2026-11-01): the US Census town list for P2.1; no ZIP linking in
+  P2.1.** The rule was "OpenStreetMap preferred; a free alternative wins only if it is better". T1 showed Census is better
+  for P2.1. The driver then moved ZIP search to P2.3, so the Census ZIP-relationship file and GeoNames ZIP linking are not
+  used here; that evidence is kept below and copied to `docs/p2.3-place-search/prd.md`.
+  - **T1 outcome (2026-11-01) — evidence (decision recorded above).** Evidence from files downloaded to `/tmp/arang-t1`
+    (not committed):
+    | Source | Coverage of the 351 MA municipalities | ZIP data | License (how verified) |
+    |---|---|---|---|
+    | **US Census 2024 gazetteer, county subdivisions** | **351 of 351**; names unique after removing the suffixes "town", "city", "Town city"; all 28 seeded towns found; internal points within 0.0–1.1 mi of the seeded points (Newton 1.8, Boston 2.9 — Boston's point lies toward the harbor) | none | US federal government work, generally not under copyright (17 U.S.C. §105 — general law; the census.gov citation page asks for a source citation but does not state "public domain") |
+    | **US Census 2020 ZCTA ↔ county-subdivision relationship file** | 347 of 351 by ID; the other 4 (Amesbury, Easthampton, Methuen, Watertown) changed IDs after 2020 and match by name | 540 MA ZIP areas (ZCTAs); 1 crosses into RI (`02861`) | same as above |
+    | **GeoNames US postal codes** (already the source of `zip-centroids.csv`) | place names are postal city names: 488 of 685 MA ZIPs name a municipality, 197 name a village or neighborhood (e.g. Jamaica Plain) | 685 MA ZIPs **with state**, including PO-box and single-organization ZIPs; `05501`/`05544` correctly MA | **CC BY 4.0, credit with a link to geonames.org** (verified in the file's own `readme.txt`). The code comment in `PostalGeoService` calling it public domain is **wrong** |
+    | **OpenStreetMap** (one Overpass query, admin_level 8) | 350 of 351 (Nantucket missing at that level); names identical to Census | almost none (1 relation has a postal code) | ODbL (read on osmfoundation.org): attribution required; a systematic extract of more than 100 features is "Substantial", so our derived place file would be a Derivative Database and we would have to offer it under ODbL on request |
+    | **MassGIS municipalities** | 351 (per its data page; not downloaded) | a separate ZIP layer exists (not downloaded) | public domain, credit requested as "MassGIS (Bureau of Geographic Information), Commonwealth of Massachusetts EOTSS" (read on mass.gov FAQ) |
+    **Combined check:** Census municipalities + Census ZCTA links + GeoNames ZIPs named for a municipality → **every one of the
+    351 municipalities has at least one ZIP**; 636 ZIPs linked; 165 ZIPs touch two or more towns (many are slivers — T2 should
+    set a minimum land-overlap share before linking); every seeded town's ZIP is linked to that town.
+    **Recommendation:** for P2.1 use **Census** (municipality list, names, points, ZIP links) **+ GeoNames** (ZIP state and
+    PO-box ZIPs, already bundled). **Do not use OSM for P2.1:** it adds nothing P2.1 needs (no ZIPs, identical names, one town
+    missing) and would bring the ODbL share-alike duty. This meets the PRD rule "OSM preferred unless a free alternative is
+    better". OSM, or MassGIS address points (public domain), stays the candidate for P2.2 addresses and venues.
+    **Credits list:** "Town data: U.S. Census Bureau" and "ZIP data: GeoNames (geonames.org), CC BY 4.0" with a link.
+    **ZIP-to-state list:** GeoNames state field, cross-checked against the Census ZCTA relationship (MA only).
+    **SQLite driver:** `org.xerial:sqlite-jdbc:3.54.1.0` (SHA-1 `b74a59de3ae1dbab7c550fe7c46099980261a676`, matched Maven
+    Central). Verified on this Mac (Apple Silicon, JDK 25): read-only open with `mode=ro` works and writes fail with
+    `SQLITE_READONLY`; a file with `journal_mode=DELETE` creates no side files; with an unwritable temp folder the native
+    library **fails to load**, and setting `org.sqlite.tmpdir` to a writable folder fixes it. The jar contains native
+    builds for Linux glibc and musl on x86_64 and aarch64. **Not verified:** a run inside a Linux container or on AWS.
 - **DD-P2.1-5 — Unknown town URL → HTTP 404 with the landing body.** **CONFIRMED (driver, 2026-11-01).** Visitors see the landing; crawlers get a
   real 404.
 - **DD-P2.1-6 — Near me runs in the browser.** **CONFIRMED (driver, 2026-11-01).** Coordinates never leave the device. *Revisit* if live towns
@@ -592,8 +612,7 @@ check (§7); every task traces to a REQ.
   review-link base.
 - **DD-P2.1-9 — SQLite outside the DataSource mechanism.** **CONFIRMED (driver, 2026-11-01).** See U6.
 - **DD-P2.1-10 — No router library in the SPA.** **CONFIRMED (driver, 2026-11-01).** *Revisit* when P2.2 adds event routes.
-- **DD-P2.1-11 — Search runs in memory over the municipalities.** **CONFIRMED (driver, 2026-11-01).** About 351 places and a few
-  hundred ZIPs fit in memory easily; Java matching gives exact word-start rules, removes the need for FTS5 and its query
+- **DD-P2.1-11 — Search runs in memory over the municipalities.** **CONFIRMED (driver, 2026-11-01).** About 351 places fit in memory easily; Java matching gives exact word-start rules, removes the need for FTS5 and its query
   syntax (no injection surface), and makes the build check and the app use the same code path. The SQLite file stays the
   artifact so P2.2 can add address tables and query them with SQL. *Revisit* if villages and neighborhoods are added and
   the place count grows by orders of magnitude.
@@ -666,3 +685,9 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
 - **v0.5 APPROVED (2026-11-01).** Driver sign-off of SDD v0.5 (incl. v0.5a–c), after three independent review gates. All 14 design decisions confirmed. The build may begin with the first slice (T1 → T3 → T4 → T5 → T6 → T7 → T8 → T14), on dev only.
 - **v0.5d (2026-11-01):** Added the test seams accepted in the TTP: injectable `Clock` (T7, T11, T12, T13), Vitest in
   `web/` (T14), and the `mysqlIntegrationTest` Gradle task (T9). No behavior change.
+- **v0.5e (2026-11-01):** T1 spike result recorded under DD-P2.1-4 (recommendation: Census + GeoNames for P2.1, no OSM; driver pinned at sqlite-jdbc 3.54.1.0). Awaiting the driver's decision.
+- **v0.6 (2026-11-01) — APPROVED revision (driver decisions).** T1 decided: **US Census town list** for P2.1 (DD-P2.1-4,
+  U5, U9). **ZIP search moved to P2.3** (`docs/p2.3-place-search/prd.md`): no ZIP tables in the place file, no ZIP step in
+  the build, digits-only input returns a hint (§1.3, §3.2, §3.4, §4.2, checks 01–02). Credits are "Town data: U.S.
+  Census Bureau" and "ZIP data: GeoNames" (the latter for the existing map pins). `town.postal_code` stays for the
+  existing discovery query.
