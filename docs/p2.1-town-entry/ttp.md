@@ -50,9 +50,9 @@ sleeping.
 ## 1. Test cases by task
 
 ### T1, T2 — Place data (source evaluation, build script)
-- **TC-P2.1-001** (B) — *Given* a build input that includes a non-Massachusetts county subdivision (for example a Rhode
-  Island row), *when* the build runs, *then* validation fails, the script exits non-zero, and no file and no manifest
-  update is published. ⟵ REQ-02 *(v0.3: was a ZIP case; ZIP linking moved to P2.3.)*
+- **TC-P2.1-001** (B) — *Given* a build input with a row marked MA whose Census ID is not a Massachusetts ID, *when* the
+  build runs, *then* validation fails, the script exits non-zero, and no file and no manifest is published. Rows marked
+  other states (for example Rhode Island) are dropped, not counted. ⟵ REQ-02 *(v0.3: was a ZIP case; ZIP linking moved to P2.3.)*
 - **TC-P2.1-002** (B) — Build input with 350 municipalities → validation fails; with exactly 351 and the
   "County subdivisions not defined" rows dropped → validation passes. ⟵ REQ-02
 - **TC-P2.1-003** (B) — On a passing build, every place row returns itself when searched by its exact name, using the
@@ -60,8 +60,7 @@ sleeping.
 - **TC-P2.1-004** (B) — A previous file contains slug `x-ma` that the new build lacks → fail. Two municipalities produce
   the same slug → fail. ⟵ REQ-02, REQ-05
 - **TC-P2.1-005** (B) — Source names "Agawam Town city", "Bourne town", and "Boston city" are stored as "Agawam",
-  "Bourne", and "Boston"; a municipality point placed in Rhode Island
-  fails the Massachusetts polygon test. ⟵ REQ-02
+  "Bourne", and "Boston"; a municipality point outside the Massachusetts bounds fails. ⟵ REQ-02
 - **TC-P2.1-006** (B) — The output file has `meta.schema_version = 1`, `data_date`, a non-empty `credits` list that
   includes "Town data: U.S. Census Bureau" and the GeoNames line, `journal_mode = DELETE`, and it opens with `mode=ro`. ⟵ REQ-18, REQ-19
 - **TC-P2.1-007** (X, T1) — **Passed in part, 2026-11-01:** the T1 note exists under SDD DD-P2.1-4 with the chosen source
@@ -295,3 +294,4 @@ real MySQL, 1 also in the browser), 12 browser cases, and 2 manual operations ca
   (`mysqlIntegrationTest` Gradle task in T9). TC-055 is level S.
 - **v0.3 (2026-11-01) — APPROVED revision.** ZIP search moved to P2.3: TC-001, 002, 003, 005, 006, 013, 016, 054 changed to
   the name-only design; TC-007 marked passed on the dev Mac, open for the Linux image. Still 65 cases.
+- **v0.3a (2026-11-03):** TC-001 and TC-005 match the T2 build (state-ID check and bounds instead of a polygon). TC-001 to TC-006 pass (`scripts/geo/test_build_geo_sqlite.py`, 8 tests). TC-008 and TC-009 pass on H2; TC-008 also applied on `arang_dev`.

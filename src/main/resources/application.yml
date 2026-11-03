@@ -21,6 +21,9 @@ server:
 
 # WhatsApp integration (REQ-01 verify, REQ-08 reply). Secrets via env, never committed.
 arang:
+  # OSM tile proxy cache folder. Empty = system temp folder (lost on restart). Dev sets a lasting folder.
+  tiles:
+    cache-dir: ${ARANG_TILES_CACHE_DIR:}
   whatsapp:
     verify-token: ${ARANG_WHATSAPP_VERIFY_TOKEN:}
     access-token: ${ARANG_WHATSAPP_ACCESS_TOKEN:}

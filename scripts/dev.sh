@@ -15,6 +15,8 @@ export SERVER_PORT="$DEV_PORT"
 export ARANG_DB_URL="${ARANG_DEV_DB_URL:-jdbc:mysql://localhost:3306/arang_dev?createDatabaseIfNotExist=true}"
 export ARANG_PUBLIC_BASE_URL="http://localhost:$DEV_PORT"
 # WhatsApp/LLM secrets are deliberately NOT set here, so dev never answers the real webhook.
+# Lasting tile cache, so a dev restart keeps the OSM tiles already fetched (git-ignored).
+export ARANG_TILES_CACHE_DIR="${ARANG_TILES_CACHE_DIR:-$ROOT/data/tiles}"
 
 # Separate build dir so dev compiles never touch files a running app may use.
 ./gradlew bootRun -PdevBuildDir=build-dev &

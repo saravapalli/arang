@@ -207,8 +207,9 @@ download, conversion, table creation, or write happens in the API server.
    `town_slug_alias`). If two municipalities would share a slug, the build fails (the 351 names were verified unique in T1).
 5. **Write** the SQLite file in `journal_mode=DELETE` (so a read-only open needs no side files), then the `meta` table.
 6. **Validate; publish nothing on failure:** municipality count within the expected range (about 351); every
-   municipality's point lies inside the Massachusetts boundary (a polygon test, not a bounding box — the bounding box
-   also contains most of Rhode Island; the polygon is the Census state boundary or the MassGIS outline, chosen in T2);
+   row's Census ID starts with `25` (Massachusetts) and its point lies inside the Massachusetts bounds *(changed in T2:
+   because the source is the Census list filtered by its own state code and ID, a polygon test adds nothing; a coarse
+   bounding box remains as a sanity check)*;
    exactly 351 rows; names carry no administrative suffix; no empty names; slugs unique; every slug in the previous file
    still exists; all 28 seeded towns resolve with the right state; **every place returns itself** when searched by its
    exact name, using the same matching rules as the app (§3.4);
@@ -502,9 +503,11 @@ Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-mile
   share-alike), effort. Choose the authoritative ZIP-to-state list. Check name forms (administrative suffixes). Check the
   SQLite driver (U4: native library, temp folder, read-only open). **Output:** a decision
   note appended to this SDD (§9 DD-P2.1-4) and a pinned driver version. No app code. *(REQ-02, 19; U4, U5, U9)*
-- **T2 — Build script and validation.** `scripts/geo/build_geo_sqlite.py`, README, and every check in §3.2 step 6;
+- **T2 — Build script and validation. DONE 2026-11-03:** `scripts/geo/build_geo_sqlite.py`, its 8 unit tests, and a real
+  build (351 places, 70 KB). The self-search check runs the Python copy of the matching rules; the Java parity check is in
+  T6. Was: `scripts/geo/build_geo_sqlite.py`, README, and every check in §3.2 step 6;
   produces a validated `geo-*.sqlite`. Depends on T1. *(REQ-02, 18, 19)*
-- **T3 — Migration V3 + seed.** `V3__p2_1_town_entry.sql` and a test that applies it and checks the seed; existing user
+- **T3 — Migration V3 + seed. DONE 2026-11-03:** applied on H2 (5 tests) and on `arang_dev` MySQL (Flyway v3). Was: `V3__p2_1_town_entry.sql` and a test that applies it and checks the seed; existing user
   tests still pass. *(REQ-07, 10, 11, 20)*
 - **T4 — Place-file reader + health.** `GeoPlaceSource`, `GeoProperties`, `HealthController`; driver dependency
   (`org.xerial:sqlite-jdbc:3.54.1.0`); correct the `PostalGeoService` comment (GeoNames is CC BY 4.0, not public domain). Tests:
@@ -691,3 +694,4 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
   the build, digits-only input returns a hint (§1.3, §3.2, §3.4, §4.2, checks 01–02). Credits are "Town data: U.S.
   Census Bureau" and "ZIP data: GeoNames" (the latter for the existing map pins). `town.postal_code` stays for the
   existing discovery query.
+- **v0.6a (2026-11-03):** T2 and T3 done. T2 replaced the Massachusetts polygon test with the Census state-ID check plus a bounding box, because the source is already filtered by state; the Java parity check of the matching rules moves to T6.
