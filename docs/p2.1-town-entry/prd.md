@@ -3,7 +3,7 @@ title: Arang — Town Entry & Coverage (P2.1)
 type: PRD
 artifact_id: ARANG-PRD-P2-1
 parent: ARANG-INIT-001
-status: draft
+status: approved
 version: 1.5
 driver: (you)
 approver: (you)
@@ -11,7 +11,7 @@ approver_role: product owner / driver
 assigned_date: 2026-10-31
 first_draft_target: 2026-10-31
 last_revised_date: 2026-11-01
-approved_date: 2026-10-31
+approved_date: 2026-11-01
 review_provenance: v1.0 approved by the driver 2026-10-31 without a review gate (approved_date refers to v1.0 only). v1.1–v1.4 are DRAFT additions. Independent spec-reviewer gate run 2026-11-01 on PRD v1.3 + TRD v0.4 + SDD v0.3 → NEEDS-CHANGES (7 HIGH); v1.4 applied the fixes. Second gate on PRD v1.4 / TRD v0.5 / SDD v0.4 → PASS-WITH-FIXES (1 new HIGH); v1.5 applies those fixes..
 jira:
 multifeature: false
@@ -425,6 +425,7 @@ Outcome legend: **ACCEPT** = store/act as given · **NORMALIZE** = accept after 
   partly superseded.
 - **v1.5a (2026-11-01):** Third gate fix: AC-01 refers to the V1 normalization rules (N2). Driver confirmed the
   change-town rule.
+- **v1.5 APPROVED (2026-11-01).** Driver sign-off of PRD v1.5 (incl. v1.5a), after three independent review gates (NEEDS-CHANGES → PASS-WITH-FIXES → PASS-WITH-FIXES, all fixes applied).
 
 ---
 

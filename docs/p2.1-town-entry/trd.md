@@ -3,14 +3,14 @@ title: Arang — Town Entry & Coverage (P2.1) — TRD
 type: TRD
 artifact_id: ARANG-TRD-P2-1
 parent: ARANG-PRD-P2-1
-status: draft
+status: approved
 version: 0.6
 driver: (you)
-approver:
+approver: (driver)
 approver_role: product owner / driver
 assigned_date: 2026-10-31
 last_revised_date: 2026-11-01
-approved_date:
+approved_date: 2026-11-01
 review_provenance: gate 1 on v0.4 → NEEDS-CHANGES (fixed in v0.5); gate 2 on v0.5 → PASS-WITH-FIXES (fixed in v0.6).
 related_docs:
   - docs/p2.1-town-entry/prd.md (PRD v1.5 — source of the ACs. v1.0 was approved; the v1.1–v1.5 additions are pending driver read-through)
@@ -208,3 +208,4 @@ tags: [trd, requirements, req, p2.1, town-entry, landing, waitlist, sitemap]
   AC text that states the same rule (AC-05, AC-06, AC-07, AC-10 were extended in PRD v1.5). Still 20 REQs.
 - **v0.6a (2026-11-01):** Third gate fixes: REQ-01 adds the mixed-text rule and the empty-query rule (N1, N2); REQ-16
   grammar (N4).
+- **v0.6 APPROVED (2026-11-01).** Driver sign-off of TRD v0.6 (incl. v0.6a), after three independent review gates.

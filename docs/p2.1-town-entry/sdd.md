@@ -3,14 +3,14 @@ title: Arangly — Town Entry & Coverage (P2.1) — SDD
 type: SDD
 artifact_id: ARANG-SDD-P2-1
 parent: ARANG-TRD-P2-1
-status: draft
+status: approved
 version: 0.5
 driver: (you)
-approver:
+approver: (driver)
 approver_role: product owner / driver
 assigned_date: 2026-11-01
 last_revised_date: 2026-11-01
-approved_date:
+approved_date: 2026-11-01
 review_provenance: Independent spec-reviewer gate 2026-11-01 on PRD v1.3 / TRD v0.4 / SDD v0.3 → NEEDS-CHANGES (7 HIGH, 13 MEDIUM, 9 LOW). v0.4 applied all findings. Second gate on PRD v1.4 / TRD v0.5 / SDD v0.4 → PASS-WITH-FIXES (1 new HIGH, 9 MEDIUM, 13 LOW); v0.5 applies them. Third gate → PASS-WITH-FIXES (fixed in v0.5b). ALL design decisions DD-P2.1-1..14 CONFIRMED by the driver (2026-11-01), plus the change-town rule and the 19-task plan.
 related_docs:
   - docs/p2.1-town-entry/prd.md (PRD v1.5 — what and why; its "Appendix — Notes for the SDD" is the origin of §3 place data)
@@ -659,3 +659,4 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
   normalized query returns an empty list (N1); alias-of-hidden-town row in the decision table (N5); checks 01, 08, 12,
   16 extended (N3, N4).
 - **v0.5c (2026-11-01):** Driver confirmed DD-P2.1-2, 4–12 (all recommendations accepted). Every design decision is now confirmed.
+- **v0.5 APPROVED (2026-11-01).** Driver sign-off of SDD v0.5 (incl. v0.5a–c), after three independent review gates. All 14 design decisions confirmed. The build may begin with the first slice (T1 → T3 → T4 → T5 → T6 → T7 → T8 → T14), on dev only.
