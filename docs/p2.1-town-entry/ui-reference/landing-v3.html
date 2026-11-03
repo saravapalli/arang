@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Arangly — landing mockup v3</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'DM Sans',sans-serif; }
+  .landing { position:relative; display:flex; min-height:100vh; flex-direction:column; overflow:hidden; background:#16181f; }
+  .bg { position:absolute; inset:0; transform:scale(1.04);
+        background:url('https://images.unsplash.com/photo-1777238096424-5f111ba9004c?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=1600') center/cover; }
+  .scrim { position:absolute; inset:0;
+           background:radial-gradient(1200px 700px at 50% 32%, rgba(12,14,20,.22), rgba(12,14,20,.66) 70%),
+                      linear-gradient(180deg, rgba(14,16,22,.58), rgba(14,16,22,.4) 34%, rgba(14,16,22,.9)); }
+  .landing > *:not(.bg):not(.scrim) { position:relative; z-index:2; }
+  .top { display:flex; align-items:center; justify-content:space-between; width:min(1100px,calc(100% - 56px)); height:80px; margin:0 auto; }
+  .logo { display:flex; align-items:center; gap:10px; color:#fff; font-family:Manrope; font-size:21px; font-weight:800; letter-spacing:-.05em; text-decoration:none; }
+  .flower { position:relative; width:27px; height:27px; transform:rotate(45deg); }
+  .flower i { position:absolute; width:13px; height:13px; border-radius:8px 8px 2px 8px; background:#ff694a; }
+  .flower i:nth-child(1){top:0;left:0}.flower i:nth-child(2){top:0;right:0;transform:rotate(90deg);background:#4951d7}
+  .flower i:nth-child(3){bottom:0;right:0;transform:rotate(180deg);background:#f7b632}.flower i:nth-child(4){bottom:0;left:0;transform:rotate(270deg);background:#4aa47b}
+  .tag { color:rgba(255,255,255,.72); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+
+  .hero { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; width:min(620px,calc(100% - 48px)); margin:0 auto; padding:30px 0 64px; text-align:center; }
+  .overline { margin:0 0 16px; color:rgba(255,255,255,.82); font-size:11px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+  .overline span { color:#ff8a6f; }
+  h1 { margin:0; color:#fff; font-family:Manrope; font-size:clamp(44px,5.5vw,76px); font-weight:700; letter-spacing:-.07em; line-height:.96; text-shadow:0 2px 30px rgba(0,0,0,.4); }
+  h1 em { color:#ff8a6f; font-family:Georgia,serif; font-weight:400; }
+  .sub { max-width:520px; margin:22px 0 0; color:rgba(255,255,255,.8); font-size:15px; line-height:1.6; }
+
+  /* the whole picker is one vertical stack — generous gaps, nothing absolute/overlapping */
+  .picker { display:flex; flex-direction:column; align-items:center; gap:18px; width:100%; margin-top:32px; }
+
+  .locate { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; max-width:440px; height:56px; padding:0 26px;
+            color:#20243a; border:0; border-radius:12px; background:#ffdb66; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 14px 34px rgba(0,0,0,.3); }
+
+  .or { display:flex; align-items:center; gap:14px; width:100%; max-width:440px; color:rgba(255,255,255,.5); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+  .or::before,.or::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.22); }
+
+  /* search + its dropdown: dropdown is in normal flow (margin-top), so it pushes content, no overlap */
+  .searchwrap { width:100%; max-width:440px; }
+  .search { display:flex; align-items:center; gap:12px; height:58px; padding:0 18px; border:1px solid rgba(255,255,255,.5); border-radius:14px; background:#fff; box-shadow:0 18px 44px rgba(0,0,0,.3); }
+  .search input { flex:1; border:0; outline:0; background:transparent; font:inherit; font-size:16px; color:#22263b; }
+  .suggest { margin-top:8px; padding:6px; border-radius:14px; background:#fff; box-shadow:0 18px 44px rgba(0,0,0,.26); text-align:left; }
+  .suggest button { display:flex; width:100%; align-items:center; gap:11px; padding:12px; border:0; border-radius:9px; background:transparent; font:inherit; font-size:14px; font-weight:600; color:#2c3042; cursor:pointer; }
+  .suggest button:hover { background:#f3f1ea; }
+  .suggest .zip { margin-left:auto; color:#9a9c95; font-size:12px; }
+
+  .popular { width:100%; max-width:440px; }
+  .popular p { margin:0 0 10px; color:rgba(255,255,255,.55); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .chip { display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 14px; color:#f3f1ea; border:1px solid rgba(255,255,255,.26); border-radius:999px; background:rgba(22,24,31,.4); backdrop-filter:blur(10px); font-size:13px; font-weight:700; cursor:pointer; }
+  .chip:hover { border-color:#fff; background:rgba(255,255,255,.96); color:#22263b; }
+
+  .foot { padding:20px; text-align:center; color:rgba(255,255,255,.45); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+  .pin { color:#ff694a; display:inline-flex; }
+  svg { width:16px; height:16px; }
+
+  /* two side-by-side state panels for the mockup only */
+  .states { display:flex; gap:0; }
+  .state { flex:1; min-width:0; }
+  .label { position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:5; padding:5px 12px; border-radius:999px; background:rgba(0,0,0,.6); color:#fff; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<main class="landing">
+  <div class="bg"></div><div class="scrim"></div>
+  <header class="top">
+    <a class="logo"><span class="flower"><i></i><i></i><i></i><i></i></span>arangly</a>
+    <span class="tag">for your town</span>
+  </header>
+
+  <section class="hero">
+    <p class="overline"><span>Any town, any size</span> · your town</p>
+    <h1>What's on in<br/><em>your town?</em></h1>
+    <p class="sub">Every other app sends you to the big city. Arang is for right where you live — markets, library talks, trail walks, live music.</p>
+
+    <div class="picker">
+      <button class="locate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+        Find events near me
+      </button>
+
+      <div class="or">or search your town</div>
+
+      <div class="searchwrap">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9c95" stroke-width="2" stroke-linecap="round" style="width:20px;height:20px"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input value="" placeholder="Type a town or ZIP…  (e.g. Ashland, 01721)" readonly/>
+        </div>
+      </div>
+
+      <div class="popular">
+        <p>Popular near you</p>
+        <div class="chips">
+          <span class="chip"><span class="pin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span> Ashland</span>
+          <span class="chip">Framingham</span>
+          <span class="chip">Natick</span>
+          <span class="chip">Boston</span>
+          <span class="chip">Cambridge</span>
+          <span class="chip">Newton</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="foot">Made for towns, by locals · any town within 100 mi</div>
+</main>
+</body>
+</html>

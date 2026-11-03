@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Arangly — coming-soon mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'DM Sans',sans-serif; background:#0f1116; }
+  .frame { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:#2a2d3a; }
+  .panel { position:relative; min-height:860px; overflow:hidden; background:#16181f; }
+  .bg { position:absolute; inset:0; transform:scale(1.04);
+        background:url('https://images.unsplash.com/photo-1777238096424-5f111ba9004c?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=1200') center/cover; }
+  .scrim { position:absolute; inset:0; background:linear-gradient(180deg, rgba(14,16,22,.6), rgba(14,16,22,.45) 34%, rgba(14,16,22,.92)); }
+  .panel > *:not(.bg):not(.scrim) { position:relative; z-index:2; }
+  .state-label { position:absolute; top:10px; left:50%; transform:translateX(-50%); z-index:5; padding:5px 12px; border-radius:999px; background:rgba(0,0,0,.6); color:#ffdb66; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  .top { display:flex; align-items:center; gap:9px; padding:22px 24px; }
+  .logo { display:flex; align-items:center; gap:9px; color:#fff; font-family:Manrope; font-size:18px; font-weight:800; letter-spacing:-.05em; }
+  .flower { position:relative; width:22px; height:22px; transform:rotate(45deg); }
+  .flower i { position:absolute; width:11px; height:11px; border-radius:7px 7px 2px 7px; background:#ff694a; }
+  .flower i:nth-child(1){top:0;left:0}.flower i:nth-child(2){top:0;right:0;transform:rotate(90deg);background:#4951d7}
+  .flower i:nth-child(3){bottom:0;right:0;transform:rotate(180deg);background:#f7b632}.flower i:nth-child(4){bottom:0;left:0;transform:rotate(270deg);background:#4aa47b}
+  .body { padding:30px 28px; text-align:center; }
+  .overline { margin:28px 0 12px; color:rgba(255,255,255,.8); font-size:10px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+  .overline span { color:#ff8a6f; }
+  h1 { margin:0 0 20px; color:#fff; font-family:Manrope; font-size:40px; font-weight:700; letter-spacing:-.06em; line-height:.98; }
+  h1 em { color:#ff8a6f; font-family:Georgia,serif; font-weight:400; }
+  .search { display:flex; align-items:center; gap:11px; height:54px; padding:0 16px; border:1px solid rgba(255,255,255,.5); border-radius:13px; background:#fff; box-shadow:0 16px 40px rgba(0,0,0,.3); }
+  .search input { flex:1; border:0; outline:0; background:transparent; font:inherit; font-size:15px; color:#22263b; }
+  .suggest { margin-top:8px; padding:6px; border-radius:13px; background:#fff; box-shadow:0 16px 40px rgba(0,0,0,.26); text-align:left; }
+  .suggest button { display:flex; width:100%; align-items:center; gap:10px; padding:11px; border:0; border-radius:8px; background:transparent; font:inherit; font-size:14px; font-weight:600; color:#2c3042; cursor:pointer; }
+  .suggest button:hover { background:#f3f1ea; }
+  .suggest .zip { margin-left:auto; color:#9a9c95; font-size:12px; }
+  .pin { color:#ff694a; display:inline-flex; } svg{width:15px;height:15px;}
+  .covered-note { margin-top:16px; color:rgba(255,255,255,.55); font-size:11px; }
+  .covered-note b { color:#ffdb66; }
+
+  /* coming-soon card */
+  .soon { margin-top:12px; padding:18px; border:1px solid rgba(255,219,102,.35); border-radius:14px; background:rgba(255,219,102,.1); text-align:left; }
+  .soon-head { display:flex; align-items:center; gap:9px; color:#ffe7b0; font-size:14px; font-weight:700; }
+  .soon p { margin:10px 0 14px; color:rgba(255,255,255,.75); font-size:12.5px; line-height:1.5; }
+  .soon .row { display:flex; gap:8px; }
+  .soon input { flex:1; height:44px; padding:0 13px; border:1px solid rgba(255,255,255,.3); border-radius:9px; background:rgba(255,255,255,.95); font:inherit; font-size:13px; color:#22263b; }
+  .soon button { height:44px; padding:0 16px; border:0; border-radius:9px; background:#ffdb66; color:#25293d; font:inherit; font-size:13px; font-weight:800; cursor:pointer; }
+  .soon .ok { display:flex; align-items:center; gap:9px; color:#bfe6cf; font-size:13px; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <!-- STATE 1: covered town → suggestions -->
+  <div class="panel">
+    <div class="bg"></div><div class="scrim"></div>
+    <div class="state-label">covered town → results</div>
+    <div class="top"><span class="logo"><span class="flower"><i></i><i></i><i></i><i></i></span>arangly</span></div>
+    <div class="body">
+      <p class="overline"><span>Any town</span> · your town</p>
+      <h1>What's on in<br/><em>your town?</em></h1>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9a9c95" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input value="natick" readonly/>
+      </div>
+      <div class="suggest">
+        <button><span class="pin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span> Natick, MA <span class="zip">01760</span></button>
+      </div>
+      <p class="covered-note">Live in <b>28 towns</b> across MetroWest &amp; Greater Boston</p>
+    </div>
+  </div>
+
+  <!-- STATE 2: uncovered town → coming soon + capture -->
+  <div class="panel">
+    <div class="bg"></div><div class="scrim"></div>
+    <div class="state-label">uncovered → coming soon</div>
+    <div class="top"><span class="logo"><span class="flower"><i></i><i></i><i></i><i></i></span>arangly</span></div>
+    <div class="body">
+      <p class="overline"><span>Any town</span> · your town</p>
+      <h1>What's on in<br/><em>your town?</em></h1>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9a9c95" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input value="Worcester" readonly/>
+      </div>
+      <div class="soon">
+        <div class="soon-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffdb66" stroke-width="2"><path d="m12 2 1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2Z"/></svg>
+          Coming soon to Worcester
+        </div>
+        <p>We're not live in Worcester yet — but we're expanding. Leave your email and we'll tell you the moment it's on.</p>
+        <div class="row">
+          <input placeholder="you@email.com" readonly/>
+          <button>Notify me</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE 3: after capture -->
+  <div class="panel">
+    <div class="bg"></div><div class="scrim"></div>
+    <div class="state-label">demand captured</div>
+    <div class="top"><span class="logo"><span class="flower"><i></i><i></i><i></i><i></i></span>arangly</span></div>
+    <div class="body">
+      <p class="overline"><span>Any town</span> · your town</p>
+      <h1>What's on in<br/><em>your town?</em></h1>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9a9c95" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input value="Worcester" readonly/>
+      </div>
+      <div class="soon">
+        <div class="ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7fd4a0" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
+          You're on the list for Worcester.
+        </div>
+        <p>We'll email you when Arangly goes live near you. Want to help it happen sooner? Tell a local organizer to add their event.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
