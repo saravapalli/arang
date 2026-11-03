@@ -11,7 +11,7 @@ approver_role: product owner / driver
 assigned_date: 2026-11-01
 last_revised_date: 2026-11-01
 approved_date:
-review_provenance: Independent spec-reviewer gate 2026-11-01 on PRD v1.3 / TRD v0.4 / SDD v0.3 → NEEDS-CHANGES (7 HIGH, 13 MEDIUM, 9 LOW). v0.4 applied all findings. Second gate on PRD v1.4 / TRD v0.5 / SDD v0.4 → PASS-WITH-FIXES (1 new HIGH, 9 MEDIUM, 13 LOW); v0.5 applies them. CONFIRMED by the driver: DD-P2.1-1, 3, 13, 14, the change-town rule (PRD v1.5), and the 19-task plan (and the PRD-level decisions listed in §13 v0.4). Still PROPOSED: DD-P2.1-2, 4–12.
+review_provenance: Independent spec-reviewer gate 2026-11-01 on PRD v1.3 / TRD v0.4 / SDD v0.3 → NEEDS-CHANGES (7 HIGH, 13 MEDIUM, 9 LOW). v0.4 applied all findings. Second gate on PRD v1.4 / TRD v0.5 / SDD v0.4 → PASS-WITH-FIXES (1 new HIGH, 9 MEDIUM, 13 LOW); v0.5 applies them. Third gate → PASS-WITH-FIXES (fixed in v0.5b). ALL design decisions DD-P2.1-1..14 CONFIRMED by the driver (2026-11-01), plus the change-town rule and the 19-task plan.
 related_docs:
   - docs/p2.1-town-entry/prd.md (PRD v1.5 — what and why; its "Appendix — Notes for the SDD" is the origin of §3 place data)
   - docs/p2.1-town-entry/trd.md (TRD v0.6 — REQ-P2.1-01..20 this design realizes)
@@ -568,32 +568,32 @@ check (§7); every task traces to a REQ.
   the wish is a `demand_signal` row referencing the user with `kind`, `place_key`, consent, and `verified_at`. P2.1 does
   not link the email user to the cookie identity. *Rejected:* email only in `demand_signal`; email in `user_metadata`; a
   table per signal type.
-- **DD-P2.1-2 — Coverage lives in MySQL (`town`).** *Proposed.* Live status must change without a release (REQ-07).
+- **DD-P2.1-2 — Coverage lives in MySQL (`town`).** **CONFIRMED (driver, 2026-11-01).** Live status must change without a release (REQ-07).
   *Rejected:* a config file in the repo.
 - **DD-P2.1-3 — Crawlable pages by server-injected shell. CONFIRMED (2026-11-01).** *Rejected:* prerender at release
   (stale within a day); Node server rendering.
-- **DD-P2.1-4 — Place-data source and ZIP/state linking.** *Proposed, finalized in T1.* OpenStreetMap preferred; a free
+- **DD-P2.1-4 — Place-data source and ZIP/state linking.** **CONFIRMED (driver, 2026-11-01).** OpenStreetMap preferred; a free
   alternative wins only if T1 shows it is better on coverage, accuracy, license, or effort. State always from the source
   data, never from a ZIP prefix. Municipality-to-ZIP by boundary containment if available, else nearest centroid.
-- **DD-P2.1-5 — Unknown town URL → HTTP 404 with the landing body.** *Proposed.* Visitors see the landing; crawlers get a
+- **DD-P2.1-5 — Unknown town URL → HTTP 404 with the landing body.** **CONFIRMED (driver, 2026-11-01).** Visitors see the landing; crawlers get a
   real 404.
-- **DD-P2.1-6 — Near me runs in the browser.** *Proposed.* Coordinates never leave the device. *Revisit* if live towns
+- **DD-P2.1-6 — Near me runs in the browser.** **CONFIRMED (driver, 2026-11-01).** Coordinates never leave the device. *Revisit* if live towns
   grow to thousands.
-- **DD-P2.1-7 — Throttle in memory, per instance, with configurable client identity.** *Proposed.* No Redis before P4.
+- **DD-P2.1-7 — Throttle in memory, per instance, with configurable client identity.** **CONFIRMED (driver, 2026-11-01).** No Redis before P4.
   Client identity is a deployment setting (header name or none), because the production front door is not decided (the
   driver stated that AWS cannot be assumed). For the current Mac + Cloudflare tunnel, the header is safe only if the app
   is reachable solely through the tunnel; binding the prod app to `127.0.0.1` would ensure that — a prod change, made only
   at an explicit prod release. *Limit:* several instances each apply their own limits.
-- **DD-P2.1-8 — Site base URL is its own setting (`arang.site.public-url`).** *Proposed.* It differs from the WhatsApp
+- **DD-P2.1-8 — Site base URL is its own setting (`arang.site.public-url`).** **CONFIRMED (driver, 2026-11-01).** It differs from the WhatsApp
   review-link base.
-- **DD-P2.1-9 — SQLite outside the DataSource mechanism.** *Proposed.* See U6.
-- **DD-P2.1-10 — No router library in the SPA.** *Proposed.* *Revisit* when P2.2 adds event routes.
-- **DD-P2.1-11 — Search runs in memory over the municipalities.** *Proposed (new in v0.4).* About 351 places and a few
+- **DD-P2.1-9 — SQLite outside the DataSource mechanism.** **CONFIRMED (driver, 2026-11-01).** See U6.
+- **DD-P2.1-10 — No router library in the SPA.** **CONFIRMED (driver, 2026-11-01).** *Revisit* when P2.2 adds event routes.
+- **DD-P2.1-11 — Search runs in memory over the municipalities.** **CONFIRMED (driver, 2026-11-01).** About 351 places and a few
   hundred ZIPs fit in memory easily; Java matching gives exact word-start rules, removes the need for FTS5 and its query
   syntax (no injection surface), and makes the build check and the app use the same code path. The SQLite file stays the
   artifact so P2.2 can add address tables and query them with SQL. *Revisit* if villages and neighborhoods are added and
   the place count grows by orders of magnitude.
-- **DD-P2.1-12 — Atomic upsert for find-or-create by email.** *Proposed (new in v0.4).* See U10. *Rejected:* look-up,
+- **DD-P2.1-12 — Atomic upsert for find-or-create by email.** **CONFIRMED (driver, 2026-11-01).** See U10. *Rejected:* look-up,
   insert, re-read.
 - **DD-P2.1-13 — 60-second caching of town pages and nearby results. CONFIRMED (driver, 2026-11-01).**
 - **DD-P2.1-14 — Retention job and unverified marker. CONFIRMED (driver, 2026-11-01).** Daily job; 24 months
@@ -615,7 +615,7 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
 - **Environments:** all work and tests on dev; prod only by explicit release. ✔
 
 ## 12. Open items that block approval or launch
-1. **Proposed decisions** DD-P2.1-2, 4–12 need the driver's confirmation at sign-off.
+1. ~~Proposed decisions~~ — **all confirmed by the driver (2026-11-01).**
 2. **T1 outcomes (block launch):** chosen place source, verified licenses and credit lines (incl. ODbL share-alike), SQLite
    driver runtime checks.
 3. **Production client identity (blocks launch of the waitlist):** set `arang.site.client-ip-header` per deployment and
@@ -658,3 +658,4 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
 - **v0.5b (2026-11-01):** Third gate (PASS-WITH-FIXES) fixes: ZIP+4 detected before punctuation removal and an empty
   normalized query returns an empty list (N1); alias-of-hidden-town row in the decision table (N5); checks 01, 08, 12,
   16 extended (N3, N4).
+- **v0.5c (2026-11-01):** Driver confirmed DD-P2.1-2, 4–12 (all recommendations accepted). Every design decision is now confirmed.
