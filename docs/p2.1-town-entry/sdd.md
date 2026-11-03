@@ -15,7 +15,7 @@ review_provenance: Independent spec-reviewer gate 2026-11-01 on PRD v1.3 / TRD v
 related_docs:
   - docs/p2.1-town-entry/prd.md (PRD v1.5 — what and why; its "Appendix — Notes for the SDD" is the origin of §3 place data)
   - docs/p2.1-town-entry/trd.md (TRD v0.6 — REQ-P2.1-01..20 this design realizes)
-  - docs/p2.1-town-entry/ttp.md (TTP — not yet written; it will prove each REQ)
+  - docs/p2.1-town-entry/ttp.md (TTP v0.2, approved — 65 test cases proving each REQ)
   - docs/p2.1-town-entry/schema-erd.html (full-schema ER diagram)
   - docs/p2-consumer-discovery/sdd.md (P2 SDD — discovery API, SPA, same-origin serving, DD-P2-3/6/9)
   - docs/p1-producer-intake/sdd.md (P1 SDD — the full schema this design adds to)
@@ -463,6 +463,10 @@ Backend (`com.arang.intake`):
 Front end (`web/src`): `router.js`, `siteConfig.js`; changes to `App.jsx`, `Landing.jsx`, `Discovery.jsx`,
 `discoveryApi.js`, `index.css`. Scripts: `scripts/geo/build_geo_sqlite.py`, `scripts/geo/README.md`.
 
+Test seams (from TTP-D2): a `java.time.Clock` bean is injected into `RequestThrottle`, the page and nearby caches, and
+`WaitlistRetentionJob`; production uses the system clock. Build additions (TTP-D1, TTP-D3): Vitest as a pinned dev
+dependency in `web/` (T14), and a Gradle task `mysqlIntegrationTest` for the real-MySQL cases (T9).
+
 Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-miles` (100);
 `arang.site.client-ip-header` (empty = connection address); `arang.site.page-cache-seconds` (60);
 `arang.waitlist.rate-per-minute` (5); `arang.waitlist.global-rate-per-minute` (100);
@@ -660,3 +664,5 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
   16 extended (N3, N4).
 - **v0.5c (2026-11-01):** Driver confirmed DD-P2.1-2, 4–12 (all recommendations accepted). Every design decision is now confirmed.
 - **v0.5 APPROVED (2026-11-01).** Driver sign-off of SDD v0.5 (incl. v0.5a–c), after three independent review gates. All 14 design decisions confirmed. The build may begin with the first slice (T1 → T3 → T4 → T5 → T6 → T7 → T8 → T14), on dev only.
+- **v0.5d (2026-11-01):** Added the test seams accepted in the TTP: injectable `Clock` (T7, T11, T12, T13), Vitest in
+  `web/` (T14), and the `mysqlIntegrationTest` Gradle task (T9). No behavior change.
