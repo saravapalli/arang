@@ -49,7 +49,24 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // The default test run stays MySQL-free (H2 only). The mysql-it tag runs via mysqlIntegrationTest.
+        excludeTags 'mysql-it'
+    }
+}
+
+// Real-MySQL integration tests (TTP-D3). Run by hand before merging the waitlist tasks:
+//   ./gradlew mysqlIntegrationTest        (needs MySQL + the arang_dev database)
+// Overridable via ARANG_DB_URL/USER/PASSWORD env vars (defaults to local arang_dev).
+tasks.register('mysqlIntegrationTest', Test) {
+    description = 'Run @Tag("mysql-it") tests against a real MySQL (arang_dev). Not part of `test`.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'mysql-it'
+    }
+    systemProperty 'spring.profiles.active', 'mysql-it'
 }
 
 // ---- Same-origin SPA build (DD-P2-6) --------------------------------------

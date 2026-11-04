@@ -12,6 +12,7 @@ public class User {
     private String phoneNumber;
     private String name;
     private String externalRef;
+    private String email;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 
@@ -55,6 +56,14 @@ public class User {
 
     public void setExternalRef(String externalRef) {
         this.externalRef = externalRef;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Instant getCreatedAt() {

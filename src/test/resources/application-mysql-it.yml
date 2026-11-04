@@ -1,0 +1,10 @@
+# Profile for the real-MySQL integration tests (@Tag "mysql-it", TTP-D3). Runs against arang_dev.
+# Overridable via env so CI can point elsewhere. Never points at the prod `arang` database.
+spring:
+  datasource:
+    url: ${ARANG_DB_URL:jdbc:mysql://localhost:3306/arang_dev?createDatabaseIfNotExist=true}
+    username: ${ARANG_DB_USER:arang}
+    password: ${ARANG_DB_PASSWORD:arang}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true

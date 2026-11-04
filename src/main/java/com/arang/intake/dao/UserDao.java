@@ -25,6 +25,7 @@ public class UserDao {
         u.setPhoneNumber(rs.getString("phone_number"));
         u.setName(rs.getString("name"));
         u.setExternalRef(rs.getString("external_ref"));
+        u.setEmail(rs.getString("email"));
         return u;
     };
 
@@ -54,7 +55,7 @@ public class UserDao {
 
     public Optional<User> findByPhoneNumber(String phoneNumber) {
         List<User> found = jdbc.query(
-            "SELECT id, phone_number, name, external_ref FROM `user` WHERE phone_number = :phone",
+            "SELECT id, phone_number, name, external_ref, email FROM `user` WHERE phone_number = :phone",
             Map.of("phone", phoneNumber), MAPPER);
         return found.stream().findFirst();
     }
@@ -62,9 +63,36 @@ public class UserDao {
     /** Find a web consumer by their cookie id (REQ-12, DD-P2-2). */
     public Optional<User> findByExternalRef(String externalRef) {
         List<User> found = jdbc.query(
-            "SELECT id, phone_number, name, external_ref FROM `user` WHERE external_ref = :ref",
+            "SELECT id, phone_number, name, external_ref, email FROM `user` WHERE external_ref = :ref",
             Map.of("ref", externalRef), MAPPER);
         return found.stream().findFirst();
+    }
+
+    /** Find a consumer by their email (lowercase), or empty (ARANG-SDD-P2-1 §4.3, T9). */
+    public Optional<User> findByEmail(String email) {
+        List<User> found = jdbc.query(
+            "SELECT id, phone_number, name, external_ref, email FROM `user` WHERE email = :email",
+            Map.of("email", email), MAPPER);
+        return found.stream().findFirst();
+    }
+
+    /**
+     * Find-or-create a user by email in one atomic statement, race-safe on MySQL (ARANG-SDD-P2-1 DD-P2.1-12).
+     * {@code ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)} keeps the existing id when the email is already
+     * present, so two concurrent requests end up with one row. The email must already be lowercased.
+     * {@code INSERT IGNORE}-style conflicts leave {@code updated_at} unchanged (the update is a no-op on id).
+     */
+    public long findOrCreateByEmail(String lowercaseEmail) {
+        jdbc.update("""
+            INSERT INTO `user` (email, created_at, updated_at)
+            VALUES (:email, :now, :now)
+            ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
+            """,
+            new MapSqlParameterSource()
+                .addValue("email", lowercaseEmail)
+                .addValue("now", Timestamp.from(Instant.now())));
+        Long id = jdbc.getJdbcTemplate().queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        return id == null ? 0 : id;
     }
 
     public long count() {
