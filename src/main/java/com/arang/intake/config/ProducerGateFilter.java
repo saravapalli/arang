@@ -15,13 +15,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Passcode gate for the PRODUCER surface (the /add screen + /api/producer/** endpoints), so the
- * public consumer site (arangly.com) does not let just anyone post events.
+ * Passcode gate for the PRODUCER surface, so the public consumer site (arangly.com) does not let just
+ * anyone post events. Guards the producer screen ({@code /add}), the direct web form ({@code /submit}), the
+ * producer console ({@code /console}), and the producer API ({@code /api/producer/**}).
  *
  * <p>Prototype-grade: a single shared passcode (env {@code ARANG_PRODUCER_KEY}). A visitor without a
  * valid {@code producer_key} cookie gets a small passcode page; submitting the correct passcode sets
  * the cookie and lets them through. The consumer app (/, /api/discovery, /api/interests, /tiles,
- * /media, /review) is unaffected. This is NOT per-user auth — that is the later user_role work.
+ * /media, /review, /towns, /sitemap.xml) is unaffected. This is NOT per-user auth — that is the later
+ * user_role work.
  *
  * <p>If {@code ARANG_PRODUCER_KEY} is blank/unset, the gate is DISABLED (open) so local dev is
  * unchanged; set the env var in the deployed/tunnelled run to lock it down.
@@ -33,6 +35,13 @@ public class ProducerGateFilter implements Filter {
 
     @Value("${arang.producer.key:}")
     private String producerKey;
+
+    private static boolean isGuarded(String path) {
+        return path.equals("/add") || path.startsWith("/add/")
+            || path.equals("/submit") || path.startsWith("/submit/")
+            || path.equals("/console") || path.startsWith("/console/")
+            || path.startsWith("/api/producer/");
+    }
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -47,9 +56,7 @@ public class ProducerGateFilter implements Filter {
         }
 
         String path = r.getRequestURI();
-        boolean guarded = path.equals("/add") || path.startsWith("/add/")
-            || path.startsWith("/api/producer/");
-        if (!guarded) {
+        if (!isGuarded(path)) {
             chain.doFilter(req, res);
             return;
         }
@@ -76,8 +83,9 @@ public class ProducerGateFilter implements Filter {
             }
         }
 
-        // No/invalid key: API gets 401; the /add page gets a small passcode form.
-        if (path.startsWith("/api/producer/")) {
+        // No/invalid key. API and any non-GET (e.g. POST /submit) are refused outright; a GET of a
+        // producer page gets the passcode form.
+        if (path.startsWith("/api/producer/") || !"GET".equalsIgnoreCase(r.getMethod())) {
             w.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             w.setContentType("application/json");
             w.getWriter().write("{\"error\":\"producer_locked\"}");
@@ -117,10 +125,10 @@ public class ProducerGateFilter implements Filter {
               <span class="logo"><span class="flower"><i></i><i></i><i></i><i></i></span>arangly</span>
               <h1>Organizers only</h1>
               <p class="sub">Adding events to Arangly is for approved local organizers. Enter your passcode.</p>
-              %s
+              %ERR%
               <input type="password" name="key" placeholder="Passcode" autofocus/>
               <button type="submit">Continue</button>
             </form></body></html>
-            """.formatted(err);
+            """.replace("%ERR%", err);
     }
 }
