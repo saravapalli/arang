@@ -78,8 +78,10 @@ public class SpaShell {
 
         String out = TITLE.matcher(template)
             .replaceFirst(Matcher.quoteReplacement("<title>" + HtmlEscaper.html(title) + "</title>" + head));
-        String rootReplacement = (bodyContent == null ? "" : bodyContent) + ROOT;
-        out = out.replace(ROOT, Matcher.quoteReplacement(rootReplacement));
+        // Put the crawler content INSIDE #root. React's createRoot().render() clears #root's children when it
+        // mounts, so a browser ends with one clean styled app; a crawler (no scripts) still sees the content.
+        String rootWithContent = "<div id=\"root\">" + (bodyContent == null ? "" : bodyContent) + "</div>";
+        out = out.replace(ROOT, Matcher.quoteReplacement(rootWithContent));
         return out;
     }
 }

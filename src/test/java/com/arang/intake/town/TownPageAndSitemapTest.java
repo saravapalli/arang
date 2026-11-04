@@ -86,7 +86,7 @@ class TownPageAndSitemapTest {
         assertThat(b).contains("rel=\"canonical\" href=\"https://arangly.com/towns/ashland-ma\"");
         assertThat(b).contains("What\u2019s on in Ashland, MA");
         assertThat(b).contains("id=\"site-config\"");
-        assertThat(b).contains("<div id=\"root\"></div>");
+        assertThat(b).contains("<div id=\"root\">");   // crawler content is rendered inside #root (cleared by React on mount)
     }
 
     @Test
