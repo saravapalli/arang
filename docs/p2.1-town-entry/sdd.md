@@ -509,7 +509,9 @@ Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-mile
   produces a validated `geo-*.sqlite`. Depends on T1. *(REQ-02, 18, 19)*
 - **T3 — Migration V3 + seed. DONE 2026-11-03:** applied on H2 (5 tests) and on `arang_dev` MySQL (Flyway v3). Was: `V3__p2_1_town_entry.sql` and a test that applies it and checks the seed; existing user
   tests still pass. *(REQ-07, 10, 11, 20)*
-- **T4 — Place-file reader + health.** `GeoPlaceSource`, `GeoProperties`, `HealthController`; driver dependency
+- **T4 — Place-file reader + health. DONE 2026-11-04:** `GeoPlaceSource` (loads once, read-only, never fails at
+  startup), `GeoProperties`, `Place`, extended `HealthController`; added `org.xerial:sqlite-jdbc:3.54.1.0`; corrected the
+  `PostalGeoService` GeoNames comment. 6 new tests; dev `/health.geo` = UP with the data date. Was:
   (`org.xerial:sqlite-jdbc:3.54.1.0`); correct the `PostalGeoService` comment (GeoNames is CC BY 4.0, not public domain). Tests:
   each `UNAVAILABLE` reason and a good file. Depends on T1. *(REQ-18, 19)*
 - **T5 — Town registry + site-config.** `TownRegistry`, `Town`, `SiteConfigController` (live list, aliases, credits,
@@ -695,3 +697,4 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
   Census Bureau" and "ZIP data: GeoNames" (the latter for the existing map pins). `town.postal_code` stays for the
   existing discovery query.
 - **v0.6a (2026-11-03):** T2 and T3 done. T2 replaced the Massachusetts polygon test with the Census state-ID check plus a bounding box, because the source is already filtered by state; the Java parity check of the matching rules moves to T6.
+- **v0.6b (2026-11-04):** T4 done. `GeoPlaceSource` takes the `@Autowired` `GeoProperties` constructor (two constructors otherwise confuse Spring). `/health` now reports the geo section and the phase reads P2.1.

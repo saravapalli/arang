@@ -18,7 +18,8 @@ import org.springframework.stereotype.Service;
  * Derives an approximate latitude/longitude from a US postal code (REQ-13, DD-3 / DD-P2-3).
  *
  * <p>Backed by a bundled ZIP-centroid dataset ({@code /geo/zip-centroids.csv}) covering every ZIP
- * within ~100 miles of Ashland, MA (~1,365 ZIPs, derived from the public-domain GeoNames US set).
+ * within ~100 miles of Ashland, MA (~1,365 ZIPs, derived from the GeoNames US postal-code set). GeoNames data is
+ * licensed CC BY 4.0 (not public domain): the site must credit "GeoNames (geonames.org)". See ARANG-SDD-P2-1 U9.
  * This is the coverage the consumer discovery MVP needs: Ashland and all surrounding towns.
  * An unknown ZIP (outside the bundled region) yields no coordinates. A nationwide dataset or a
  * live geocoding service can replace the loaded map behind the same method, no schema change.
