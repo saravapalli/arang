@@ -29,7 +29,9 @@ echo "==> 3/6 build the place file (P2.1 town search) and copy it to .release/"
 python3 scripts/geo/build_geo_sqlite.py --out-dir "$REL/geo" --previous "$REL/geo/current.sqlite" 2>/dev/null \
   || python3 scripts/geo/build_geo_sqlite.py --out-dir "$REL/geo"
 NEW_GEO="$(ls -t "$REL/geo"/geo-*.sqlite | head -1)"
+rm -f "$REL/geo/current.sqlite"
 cp "$NEW_GEO" "$REL/geo/current.sqlite"
+chmod u+w "$REL/geo/current.sqlite"
 echo "    place file: $(basename "$NEW_GEO")"
 
 echo "==> 4/6 run backend tests, then build jar"
