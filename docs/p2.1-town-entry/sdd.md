@@ -518,9 +518,9 @@ Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-mile
   startup consistency warning against the place file). Depends on T3, T4. *(REQ-07, 18, 19)*
 - **T6 — Places search API.** `PlaceSearchService`, `PlaceController`: word-start matching, exact-first ranking, cap,
   400/503. Depends on T4, T5. *(REQ-01, 02, 09, 18)*
-- **T7 — Page shell + town pages.** `SpaShell` (escaping, fail-closed, page titles with the brand), `TownPageController`
+- **T7 — Page shell + town pages. DONE 2026-11-04:** `SpaShell`, `HtmlEscaper`, (escaping, fail-closed, page titles with the brand), `TownPageController`
   (decision table, redirects, 60 s cache), `WebConfig`. Depends on T5, T6. *(REQ-05, 06, 17)*
-- **T8 — Sitemap and robots.** `SitemapController`; delete `deploy/cloudflare/*`. Depends on T5. *(REQ-13, 14)*
+- **T8 — Sitemap and robots. DONE 2026-11-04:** `SitemapController`; delete `deploy/cloudflare/*`. Depends on T5. *(REQ-13, 14)*
 - **T9 — User email support.** `User`, `UserDao` (atomic upsert, `findByEmail`), comment on `ConsumerIdentityResolver`
   (U11); concurrency test on MySQL. Depends on T3. *(REQ-10, 11)*
 - **T10 — Waitlist API.** `WaitlistController`, `WaitlistService`, `DemandSignalDao`: validation, place key, idempotency,
@@ -698,3 +698,4 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
   existing discovery query.
 - **v0.6a (2026-11-03):** T2 and T3 done. T2 replaced the Massachusetts polygon test with the Census state-ID check plus a bounding box, because the source is already filtered by state; the Java parity check of the matching rules moves to T6.
 - **v0.6b (2026-11-04):** T4 done. `GeoPlaceSource` takes the `@Autowired` `GeoProperties` constructor (two constructors otherwise confuse Spring). `/health` now reports the geo section and the phase reads P2.1.
+- **v0.6d (2026-11-04):** T7 and T8 done. 12 new tests (131 total). Two framework notes: a trailing-slash path needs its own `@GetMapping` (Spring does not fold it); an encoded-slash slug is refused by the framework as 400 before the controller, which is acceptable (never serves another town). Jackson 3's package is `tools.jackson.databind` in Spring Boot 4. Verified on dev: live town, coming-soon with noindex, case redirect, 404 landing, 28-town sitemap, robots.

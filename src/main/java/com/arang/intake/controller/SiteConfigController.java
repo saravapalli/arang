@@ -42,6 +42,11 @@ public class SiteConfigController {
 
     @GetMapping("/api/site-config")
     public Map<String, Object> siteConfig() {
+        return config();
+    }
+
+    /** The same site-config map, for the page shell to embed (T7). */
+    public Map<String, Object> config() {
         List<Map<String, Object>> townList = towns.liveTowns().stream().map(SiteConfigController::townJson).toList();
 
         Map<String, Object> consent = new LinkedHashMap<>();
@@ -56,6 +61,10 @@ public class SiteConfigController {
         body.put("geo", geo.status().name());
         body.put("publicUrl", publicUrl);
         return body;
+    }
+
+    public String publicUrl() {
+        return publicUrl;
     }
 
     private static Map<String, Object> townJson(Town t) {
