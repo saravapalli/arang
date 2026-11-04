@@ -1,26 +1,75 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Landing from './components/Landing.jsx'
 import Discovery from './components/Discovery.jsx'
 import ProducerScreen from './components/ProducerScreen.jsx'
+import { currentRoute, navigate, subscribe } from './router.js'
+import { getSiteConfig, loadSiteConfig, findTown } from './siteConfig.js'
 
-// Routing (no router lib): the producer intake screen lives at /add (or #add) — same SPA, same
-// design language as the consumer, but intentionally NOT linked from the consumer landing.
-function isProducerRoute() {
-  const p = window.location.pathname
-  return p === '/add' || p.startsWith('/add/') || window.location.hash === '#add'
+// localStorage key that remembers the last chosen town. It is a client-only convenience:
+// its value is NEVER sent to the server (REQ-P2.1-16 / AC-P2.1-16). Only the normal
+// /towns and /api/discovery requests happen.
+const TOWN_KEY = 'arangly.town'
+
+function rememberedSlug() {
+  try { return window.localStorage.getItem(TOWN_KEY) } catch { return null }
+}
+function rememberTown(slug) {
+  try { window.localStorage.setItem(TOWN_KEY, slug) } catch { /* ignore */ }
+}
+function forgetTown() {
+  try { window.localStorage.removeItem(TOWN_KEY) } catch { /* ignore */ }
 }
 
-// Two-screen consumer flow:
-//   Screen 1 (Landing)   — attractive, town-first; the one job is "choose your town".
-//   Screen 2 (Discovery) — appears ONLY after a town is chosen: the list + OSM map.
+// Routed consumer flow (P2.1 T15):
+//   /            landing (or auto-forward to a remembered, still-live town)
+//   /towns/<s>   discovery for the live town <s>
+//   /add         producer intake screen
 export default function App() {
-  const [locationId, setLocationId] = useState(null)
+  const [route, setRoute] = useState(() => currentRoute())
+  // getSiteConfig() returns the embedded config synchronously when present.
+  const [config, setConfig] = useState(() => getSiteConfig())
 
-  if (isProducerRoute()) {
+  // Re-render whenever the route changes (navigate() or browser back/forward).
+  useEffect(() => subscribe(setRoute), [])
+
+  // Load site-config: embedded first, async fetch as the fallback.
+  useEffect(() => {
+    if (config) return
+    let live = true
+    loadSiteConfig().then((cfg) => { if (live && cfg) setConfig(cfg) })
+    return () => { live = false }
+  }, [config])
+
+  // On the landing route, auto-forward to a remembered town only if it is still a LIVE
+  // town in site-config. A removed/hidden slug is ignored (and must not bounce after
+  // "Change town", which clears the key before navigating to "/").
+  useEffect(() => {
+    if (route.screen !== 'landing' || !config) return
+    const slug = rememberedSlug()
+    if (slug && findTown(config, slug)) {
+      navigate(`/towns/${slug}`)
+    }
+  }, [route.screen, config])
+
+  if (route.screen === 'producer') {
     return <ProducerScreen />
   }
-  if (!locationId) {
-    return <Landing onChoose={setLocationId} />
+
+  if (route.screen === 'town') {
+    const town = config ? findTown(config, route.slug) : null
+    // A slug that is not a live town falls back to the landing (AC: unknown slug -> Landing).
+    if (town) {
+      return (
+        <Discovery
+          town={town}
+          onChangeTown={() => { forgetTown(); navigate('/') }}
+        />
+      )
+    }
+    return <Landing config={config} onChoose={(slug) => { rememberTown(slug); navigate(`/towns/${slug}`) }} />
   }
-  return <Discovery locationId={locationId} onChangeTown={() => setLocationId(null)} onPickTown={setLocationId} />
+
+  // Landing. If a remembered live town exists, the effect above forwards to it; render
+  // Landing meanwhile (and when there is no remembered town).
+  return <Landing config={config} onChoose={(slug) => { rememberTown(slug); navigate(`/towns/${slug}`) }} />
 }

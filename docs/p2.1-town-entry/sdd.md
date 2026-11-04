@@ -528,18 +528,18 @@ Config keys: `arang.geo.file`; `arang.site.public-url`; `arang.site.near-me-mile
 - **T11 — Throttle and client identity. DONE 2026-11-04:** `RequestThrottle`, `ClientKeyResolver`, startup warning. Depends on T10.
   *(REQ-12)*
 - **T12 — Retention job. DONE 2026-11-04:** `WaitlistRetentionJob` (daily) and its test. Depends on T3. *(REQ-20)*
-- **T13 — Nearby towns API.** `NearbyController` with the 60 s cache. Depends on T5. *(REQ-08)*
-- **T14 — SPA routing, server town data, remember town.** `router.js`, `siteConfig.js`, `App.jsx`: "change town"
+- **T13 — Nearby towns API. DONE 2026-11-04:** `NearbyController` with the 60 s cache. Depends on T5. *(REQ-08)*
+- **T14 — SPA routing, server town data, remember town. DONE 2026-11-04:** `router.js`, `siteConfig.js`, `App.jsx`: "change town"
   clears the remembered town; a stale remembered town is cleared. Depends on T5, T7. *(REQ-05, 06, 16)*
-- **T15 — SPA landing search, near me, not found, credit, landing brand.** `Landing.jsx`, `discoveryApi.js`,
+- **T15 — SPA landing search, near me, not found, credit, landing brand. DONE 2026-11-04:** `Landing.jsx`, `discoveryApi.js`,
   `index.css`. Debounce and latest-response-wins for "not found". Depends on T6, T14. *(REQ-01, 03, 04, 09, 17, 18, 19)*
-- **T16 — SPA waitlist form (coming soon and "not found in Massachusetts").** `Landing.jsx` form states,
+- **T16 — DONE 2026-11-04. SPA waitlist form (coming soon and "not found in Massachusetts").** `Landing.jsx` form states,
   `discoveryApi.js`. Depends on T10, T11, T15. *(REQ-09, 10, 11, 12)*
-- **T17 — SPA discovery screen: nothing-on state and discovery-screen brand.** `Discovery.jsx`. Depends on T13, T14.
+- **T17 — SPA discovery screen: nothing-on state and discovery-screen brand. DONE 2026-11-04:** `Discovery.jsx`. Depends on T13, T14.
   *(REQ-08, 17)*
-- **T18 — End-to-end tests.** Playwright flows for the TTP, the network-request check (REQ-19), and the log-capture check
+- **T18 — End-to-end tests. DONE 2026-11-04:** Playwright flows for the TTP, the network-request check (REQ-19), and the log-capture check
   (REQ-15) against dev. Depends on T15–T17. *(all)*
-- **T19 — Deploy step, release script, runbooks.** Geo-file deploy step, release-script update, operator runbooks (make a
+- **T19 — Deploy step, release script, runbooks. DONE 2026-11-04:** Geo-file deploy step, release-script update, operator runbooks (make a
   town live, remove a person on request), STATUS.md, and the P2 doc pointers (P2 SDD DD-P2-3, DD-P2-9, DD-P2-11 point to
   this feature where it supersedes them). Depends on T2, T18. *(REQ-18, 19, 20)*
 
@@ -700,3 +700,8 @@ service; a two-digit ZIP-prefix state rule (wrong, see U5).
 - **v0.6b (2026-11-04):** T4 done. `GeoPlaceSource` takes the `@Autowired` `GeoProperties` constructor (two constructors otherwise confuse Spring). `/health` now reports the geo section and the phase reads P2.1.
 - **v0.6d (2026-11-04):** T7 and T8 done. 12 new tests (131 total). Two framework notes: a trailing-slash path needs its own `@GetMapping` (Spring does not fold it); an encoded-slash slug is refused by the framework as 400 before the controller, which is acceptable (never serves another town). Jackson 3's package is `tools.jackson.databind` in Spring Boot 4. Verified on dev: live town, coming-soon with noindex, case redirect, 404 landing, 28-town sitemap, robots.
 - **v0.6e (2026-11-04):** T9–T12 done. Added `user.email` support with an atomic upsert, `DemandSignalDao`, `WaitlistService`/`WaitlistController`, `ClientKeyResolver`, `RequestThrottle` (injected `Clock`), and `WaitlistRetentionJob`. An injected `Clock` bean was added for the throttle, caches, and job (TTP-D2). A `mysqlIntegrationTest` Gradle task runs the one real-MySQL concurrency test (TTP-D3); the default `test` run excludes the `mysql-it` tag. 28 new tests. Verified on dev: the Gloucester waitlist saves, is idempotent, lowercases the email, rejects a live town and a bad email.
+- **v0.7 (2026-11-04) — BUILD COMPLETE.** T13–T19 done. The SPA (new siteConfig/router, landing search + near-me +
+  coming-soon + waitlist, nothing-on nearby state, remember-town, Arangly brand) is wired to the backend and built into
+  `static/`. 150 backend tests + a real-MySQL concurrency test + 6 Playwright E2E tests pass on dev. Release script now
+  builds and ships the place file and sets a durable tile cache; `docs/p2.1-town-entry/runbook.md` added; STATUS.md
+  updated; the P2 SDD doc pointers were added (DD-P2-3/9/11 → this feature). All on dev; prod unchanged.

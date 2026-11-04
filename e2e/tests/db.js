@@ -86,6 +86,17 @@ const db = {
       return true;
     });
   },
+
+  /** How many waitlist signals exist for a given email (joins user → demand_signal). P2.1. */
+  async waitlistCountForEmail(email) {
+    return withConn(async (c) => {
+      const [rows] = await c.execute(
+        'SELECT COUNT(*) AS n FROM demand_signal s JOIN `user` u ON u.id = s.user_id WHERE u.email = ?',
+        [email],
+      );
+      return Number(rows[0].n);
+    });
+  },
 };
 
 module.exports = { db };

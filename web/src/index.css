@@ -676,3 +676,53 @@
 .cards-empty svg { flex: none; color: #ff694a; }
 .cards-empty p { margin: 0; font-size: 13px; line-height: 1.6; }
 .cards-empty strong { display: block; color: #25293d; font-size: 14px; margin-bottom: 2px; }
+
+/* P2.1: search hints + inline link (landing). */
+.search-hint {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.linklike {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #ffd0c6;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* P2.1: "Nothing on this week" empty state with nearby towns + add-event link. */
+.nothing-on { flex-direction: column; align-items: flex-start; }
+.nothing-on .nearby-head {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #25293d;
+}
+.nearby-towns { display: flex; flex-wrap: wrap; gap: 8px; }
+.nearby-towns .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid #d8d5cc;
+  border-radius: 999px;
+  background: #fff;
+  color: #25293d;
+  font-size: 13px;
+  cursor: pointer;
+}
+.nearby-towns .chip .zip {
+  color: #6e716d;
+  font-size: 11px;
+}
+.add-event-link {
+  color: #ff694a;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.add-event-link:hover { text-decoration: underline; }

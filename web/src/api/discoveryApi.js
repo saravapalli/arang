@@ -1,6 +1,6 @@
-// Fetches REAL events from the Spring Boot discovery endpoint and maps them to the
-// SPA's event shape. In dev, Vite proxies /api to :8080 (vite.config.js). This lets the
-// list show database events (e.g. the uploaded Garba/Dandiya flyer) alongside the examples.
+// Backend API client for the discovery SPA. In dev, Vite proxies /api to the Boot app
+// (vite.config.js). The SET of towns now comes from site-config (siteConfig.js), not from
+// the hard-coded locations list. We keep data/events.js only for photos + category labels.
 
 const CATEGORY_LABEL = {
   music: 'Music', food: 'Food', family: 'Family', arts: 'Arts',
@@ -146,20 +146,64 @@ export function googleMapsUrl(ev) {
 }
 
 /**
- * Record demand for an uncovered town ("Notify me"). Returns true only if the server saved it.
- * NOTE: the backend endpoint POST /api/waitlist does not exist yet — until it does, this returns
- * false and the landing shows an error instead of claiming the email was saved.
+ * Record demand for an uncovered place ("Notify me"). POST /api/waitlist (P2.1 T16).
+ * `place` is a town slug OR free text (the typed town name).
+ * Returns { ok, status } where status is the parsed response body so the caller can tell
+ * the outcomes apart:
+ *   200 -> { ok:true,  status:{ status:'saved' } }
+ *   400 -> { ok:false, status:{ errors:{ email|place:'invalid' } } }
+ *   429 -> { ok:false, status:{ retryAfterSeconds:N } }
+ *   500 -> { ok:false, status:{ error:'not_saved' } }
+ * On a network failure, ok is false and status is { error:'network' }.
  */
-export async function joinWaitlist(town, email) {
+export async function joinWaitlist(place, email) {
   try {
     const res = await fetch('/api/waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ town, email }),
+      body: JSON.stringify({ place, email }),
     })
-    return res.ok
+    let body = {}
+    try { body = await res.json() } catch { /* body may be empty */ }
+    return { ok: res.ok, status: body, httpStatus: res.status }
   } catch {
-    return false
+    return { ok: false, status: { error: 'network' }, httpStatus: 0 }
+  }
+}
+
+/**
+ * Search live + coming-soon places. GET /api/places?q=<text> (P2.1 T16).
+ * Returns the parsed body unchanged so the caller can branch on each case:
+ *   200 -> { results:[{slug,name,state,live,exact}] }
+ *   200 -> { results:[], hint:'type_town_name' }   (digits-only input)
+ *   400 -> { error:'q_invalid' }                   (empty or > 80 chars)
+ *   503 -> { error:'geo_unavailable' }              (place data down)
+ * On a network failure, returns { error:'network' }.
+ */
+export async function searchPlaces(q) {
+  try {
+    const res = await fetch(`/api/places?q=${encodeURIComponent(q)}`, { credentials: 'same-origin' })
+    let body = {}
+    try { body = await res.json() } catch { /* ignore */ }
+    return body
+  } catch {
+    return { error: 'network' }
+  }
+}
+
+/**
+ * Nearby towns for the discovery empty state. GET /api/towns/{slug}/nearby (P2.1 T17).
+ * Returns an array of up to 3 towns [{slug,name,state,distanceMiles,eventCount}].
+ * On 404 (unknown/hidden town) or any error, returns [].
+ */
+export async function fetchNearby(slug) {
+  try {
+    const res = await fetch(`/api/towns/${encodeURIComponent(slug)}/nearby`, { credentials: 'same-origin' })
+    if (!res.ok) return []
+    const body = await res.json()
+    return Array.isArray(body.towns) ? body.towns : []
+  } catch {
+    return []
   }
 }

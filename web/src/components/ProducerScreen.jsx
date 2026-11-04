@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import Icon from './Icon.jsx'
 
-// PRODUCER screen (lives at /add, not linked from the consumer landing). Same Arang design
+// PRODUCER screen (lives at /add, not linked from the consumer landing). Same Arangly design
 // language as the consumer SPA. Submits a typed event or a flyer image through the real producer
 // pipeline (/api/producer/*), polls enrichment status, and shows the deciphered fields + review link.
 export default function ProducerScreen() {
@@ -57,7 +57,7 @@ export default function ProducerScreen() {
   return (
     <main className="app producer-screen">
       <header className="topbar">
-        <a className="logo" href="/" aria-label="Arang home">
+        <a className="logo" href="/" aria-label="Arangly home">
           <span className="logo-flower"><i /><i /><i /><i /></span>
           arangly
         </a>
@@ -73,7 +73,7 @@ export default function ProducerScreen() {
         <div className="section-heading">
           <div>
             <p className="overline">For organizers · your town</p>
-            <h2>Add your event to Arang.</h2>
+            <h2>Add your event to Arangly.</h2>
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export default function ProducerScreen() {
           <div className="producer-card">
             <h3><Icon name="spark" size={18} /> Describe it in a sentence</h3>
             <p className="producer-hint">
-              Tell us what’s happening — title, date, time, place. Arang reads it and fills in the details.
+              Tell us what’s happening — title, date, time, place. Arangly reads it and fills in the details.
             </p>
             <textarea
               value={message}
@@ -97,7 +97,7 @@ export default function ProducerScreen() {
           <div className="producer-card">
             <h3><Icon name="pin" size={18} /> Or upload a flyer</h3>
             <p className="producer-hint">
-              Got a poster or flyer image? Upload it and Arang will read the details off it.
+              Got a poster or flyer image? Upload it and Arangly will read the details off it.
             </p>
             <input ref={fileRef} type="file" accept="image/*" hidden
               onChange={(e) => submitImage(e.target.files?.[0])} />

@@ -261,6 +261,8 @@ erDiagram
 - **DD-P2-2 — web consumer identity storage: RESOLVED (2026-10-30).** Add a **nullable
   `external_ref` column on `user`** to hold the web cookie id (WhatsApp users keep `phone_number`).
   Additive, no new table, no backfill. Applied in the P2 `V2` migration.
+- **P2.1 note (2026-11-04):** real town resolution (DD-P2-3), the two-screen landing (DD-P2-9), and the "any town, any size" positioning (DD-P2-11) are delivered/superseded by **P2.1 Town Entry & Coverage** (`docs/p2.1-town-entry/`): town names come from the Census list via a read-only place file, the landing is server-rendered with town search, and coverage is data in the `town` table.
+
 - **DD-P2-3 — area radius + location resolution: RESOLVED (2026-10-30).** MVP location input is a
   **postal code**, resolved to a centroid via the existing `PostalGeoService`; default radius
   **15 miles**. Free-text (town-name) geocoding is deferred.

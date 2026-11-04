@@ -1,20 +1,37 @@
 import { useEffect, useMemo, useState } from 'react'
 import Icon from './Icon.jsx'
 import MapView from './MapView.jsx'
-import { locations, categories } from '../data/events.js'
-import { fetchRealEvents, saveInterests, getInterests, toVocab, googleMapsUrl, WINDOW_PRESETS, windowFor } from '../api/discoveryApi.js'
+import { categories } from '../data/events.js'
+import {
+  fetchRealEvents, fetchNearby, saveInterests, getInterests, toVocab,
+  googleMapsUrl, WINDOW_PRESETS, windowFor,
+} from '../api/discoveryApi.js'
+import { navigate } from '../router.js'
 
-// SCREEN 2 — discovery. Only rendered once a town is chosen on the landing.
-export default function Discovery({ locationId, onChangeTown, onPickTown }) {
+// Adapt a site-config town {slug,name,state,postal,lat,lng,zoom} to the shape MapView wants
+// (it reads location.center + location.zoom + location.label).
+function toMapLocation(town) {
+  return {
+    center: [town.lat, town.lng],
+    zoom: town.zoom || 13,
+    label: `${town.name}, ${town.state}`,
+  }
+}
+
+// SCREEN 2 — discovery. Rendered for a LIVE town (P2.1 T17). The town comes from site-config.
+export default function Discovery({ town, onChangeTown }) {
   const [category, setCategory] = useState('All')
   const [activeId, setActiveId] = useState(null)
   const [saved, setSaved] = useState([])
   const [selected, setSelected] = useState(null)
   const [view, setView] = useState('map')
-  const [townOpen, setTownOpen] = useState(false)
   const [realEvents, setRealEvents] = useState([])
   const [savedCategories, setSavedCategories] = useState([])
   const [windowPreset, setWindowPreset] = useState('this-week')
+  const [nearby, setNearby] = useState([]) // nearby towns for the empty state
+
+  const location = useMemo(() => toMapLocation(town), [town])
+  const townLabel = location.label
 
   // Load any previously saved interests (cookie identity) once.
   useEffect(() => {
@@ -23,40 +40,35 @@ export default function Discovery({ locationId, onChangeTown, onPickTown }) {
 
   // Pull REAL database events for the chosen town + selected time window (UF-P2-1).
   useEffect(() => {
-    const town = locations.find((l) => l.id === locationId)
-    fetchRealEvents(town?.postal, windowFor(windowPreset)).then(setRealEvents)
-  }, [locationId, windowPreset])
+    fetchRealEvents(town.postal, windowFor(windowPreset)).then(setRealEvents)
+  }, [town.postal, windowPreset])
 
-  const location = useMemo(
-    () => locations.find((l) => l.id === locationId) ?? locations[0],
-    [locationId],
-  )
-
-  // Real DB events already come filtered to the chosen town's postal by /api/discovery.
-  // Merge them real-first so they show at the top of the list.
-  const events = useMemo(() => {
-    const base = location.events
-    if (realEvents.length) {
-      const extraIds = new Set(realEvents.map((e) => e.id))
-      return [...realEvents, ...base.filter((e) => !extraIds.has(e.id))]
-    }
-    return base
-  }, [location, realEvents])
-
+  // Real DB events already come filtered to the chosen town by /api/discovery.
+  const events = realEvents
   const filtered = useMemo(
     () => (category === 'All' ? events : events.filter((e) => e.category === category)),
     [category, events],
   )
   const activeEvent = events.find((e) => e.id === activeId) ?? events[0]
 
+  // Reset category + active event when the town changes.
   useEffect(() => {
     setCategory('All')
     setActiveId(events[0]?.id ?? null)
-  }, [locationId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [town.slug]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!filtered.some((e) => e.id === activeId)) setActiveId(filtered[0]?.id ?? null)
   }, [filtered, activeId])
+
+  // Empty window: fetch up to 3 nearby towns to offer instead (AC "Nothing on this week").
+  const windowEmpty = events.length === 0
+  useEffect(() => {
+    if (!windowEmpty) { setNearby([]); return }
+    let live = true
+    fetchNearby(town.slug).then((rows) => { if (live) setNearby(rows) })
+    return () => { live = false }
+  }, [windowEmpty, town.slug])
 
   useEffect(() => {
     if (!selected) return
@@ -82,7 +94,7 @@ export default function Discovery({ locationId, onChangeTown, onPickTown }) {
   return (
     <main className="app discovery-screen">
       <header className="topbar">
-        <a className="logo" href="#" aria-label="Arang home" onClick={(e) => { e.preventDefault(); onChangeTown() }}>
+        <a className="logo" href="/" aria-label="Arangly home" onClick={(e) => { e.preventDefault(); onChangeTown() }}>
           <span className="logo-flower"><i /><i /><i /><i /></span>
           arangly
         </a>
@@ -93,26 +105,10 @@ export default function Discovery({ locationId, onChangeTown, onPickTown }) {
         </nav>
         <div className="top-actions">
           <div className="location-picker">
-            <button className="location-button" type="button" onClick={() => setTownOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={townOpen}>
-              <Icon name="pin" size={16} /> {location.label}
+            <button className="location-button" type="button" onClick={onChangeTown} aria-label="Change town">
+              <Icon name="pin" size={16} /> {townLabel}
               <span className="loc-caret">⌄</span>
             </button>
-            {townOpen && (
-              <div className="location-menu" role="listbox" aria-label="Change your town">
-                <p className="location-menu-head">Change your town</p>
-                {locations.map((loc) => (
-                  <button key={loc.id} type="button" role="option" aria-selected={loc.id === locationId}
-                    className={loc.id === locationId ? 'active' : ''}
-                    onClick={() => { onPickTown(loc.id); setTownOpen(false) }}>
-                    <Icon name="pin" size={14} /><span>{loc.label}</span>
-                    {loc.id === locationId && <Icon name="check" size={15} />}
-                  </button>
-                ))}
-                <button type="button" className="town-reset" onClick={() => { setTownOpen(false); onChangeTown() }}>
-                  ← Back to all towns
-                </button>
-              </div>
-            )}
           </div>
           <button className="avatar" type="button" aria-label="Profile"><Icon name="user" size={17} /></button>
         </div>
@@ -122,7 +118,7 @@ export default function Discovery({ locationId, onChangeTown, onPickTown }) {
         <div className="section-heading">
           <div>
             <p className="overline">Your town · {WINDOW_PRESETS.find((w) => w.id === windowPreset)?.label}</p>
-            <h2>What’s on in {location.label}.</h2>
+            <h2>What’s on in {townLabel}.</h2>
           </div>
           <div className="view-toggle" aria-label="Change view">
             <button className={view === 'map' ? 'active' : ''} type="button" onClick={() => setView('map')}><Icon name="map" size={16} /> Map</button>
@@ -155,15 +151,38 @@ export default function Discovery({ locationId, onChangeTown, onPickTown }) {
         <div className={`discovery-shell view-${view} ${view === 'list' ? 'list-view' : ''}`}>
           <div className="event-rail">
             <div className="rail-head">
-              <p><strong>{filtered.length} places</strong> around {location.label}</p>
+              <p><strong>{filtered.length} places</strong> around {townLabel}</p>
               <button type="button">Recommended <span>⌄</span></button>
             </div>
             <div className="cards">
-              {filtered.length === 0 && (
+              {/* Empty window: "Nothing on this week" + up to 3 nearby towns + add-event link. */}
+              {events.length === 0 && (
+                <div className="cards-empty nothing-on">
+                  <Icon name="calendar" size={20} />
+                  <p><strong>Nothing on this week</strong></p>
+                  {nearby.length > 0 && (
+                    <>
+                      <p className="nearby-head">Nearby towns</p>
+                      <div className="nearby-towns">
+                        {nearby.map((n) => (
+                          <button key={n.slug} type="button" className="chip"
+                            onClick={() => navigate(`/towns/${n.slug}`)}>
+                            <Icon name="pin" size={14} /> {n.name}, {n.state}
+                            {typeof n.eventCount === 'number' && <span className="zip">{n.eventCount}</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <a className="add-event-link" href="/submit">Have an event? Add it</a>
+                </div>
+              )}
+              {/* Non-empty window but the chosen category has no matches. */}
+              {events.length > 0 && filtered.length === 0 && (
                 <div className="cards-empty">
                   <Icon name="calendar" size={20} />
-                  <p><strong>Nothing listed here yet</strong>
-                  Be the first — add an event for {location.label}, or try another time window.</p>
+                  <p><strong>Nothing in this category</strong>
+                  Try another category or time window.</p>
                 </div>
               )}
               {filtered.map((event) => (
